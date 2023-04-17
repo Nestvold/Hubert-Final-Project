@@ -45,3 +45,19 @@ def read_MM(filename) -> set:
             y, x = (int(z) for z in line[:2])
             MM.add((y - 1, x - 1))
     return MM
+
+def read_walking_MM(filename) -> set:
+    """
+    Reads a TSV file and puts the value in an array to represent the track/hill.
+    :param filename:
+    :return: An dict representing the values from file
+    """
+    MM = set()
+    with open(f'project_data/{filename}') as file:
+        content = file.readlines()
+        for line in content:
+            line = line.split('\t')
+            y, x = (int(z) for z in line[:2])
+
+            MM.add((y - 1, x - 1))
+    return MM

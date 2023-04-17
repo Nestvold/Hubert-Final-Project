@@ -2,27 +2,28 @@ from Utils import Busted
 from random import random, randint
 
 
-def Move(pos, action, grid, enemies=[], pmm=0.0, MM=False, Fans=False, rocket_motor=False):
+def Move(pos, action, grid, enemies=set(), pMM=0.0, MM=False, Fans=False, rocket_motor=False):
     solids = set([2, 3])
 
-    if action == 0:
-        busted, new_pos, R = Move_Left(pos, grid, solids, enemies, pmm, MM, Fans)
-    elif action == 1:
-        busted, new_pos, R = Move_Jump(pos, grid, solids, enemies, pmm, MM, Fans, rocket_motor)
-    elif action == 2:
-        busted, new_pos, R = Move_Right(pos, grid, solids, enemies, pmm, MM, Fans)
-    else:
-        print('Action:', action)
-    return busted, new_pos, R 
+    match action:
+        case 0:
+            return Move_Left(pos, grid, solids, enemies, pMM, MM, Fans)
+        case 1:
+            return Move_Jump(pos, grid, solids, enemies, pMM, MM, Fans, rocket_motor)
+        case 2:
+            return Move_Right(pos, grid, solids, enemies, pMM, MM, Fans)
+        case _:
+            print('Action:', action)
+            return None
 
 
-def Move_Left(new_pos, grid, solids, enemies, pmm, MM, Fans):
+def Move_Left(new_pos, grid, solids, enemies, pMM, MM, Fans):
     R = -1
     
     if grid[new_pos[0], new_pos[1]-1] != 2:                      # Check if he can move left
-        new_pos = (new_pos[0], new_pos[1]-1)                     # Move left 
-        
-        if Busted(enemies, new_pos, pmm):
+        new_pos = (new_pos[0], new_pos[1]-1)                     # Move left
+
+        if Busted(enemies, new_pos, pMM):
             if MM:
                 return True, new_pos, R
             if Fans:
@@ -31,7 +32,7 @@ def Move_Left(new_pos, grid, solids, enemies, pmm, MM, Fans):
         if grid[new_pos[0]+1, new_pos[1]] not in solids:         # Check if he can fall
             new_pos = (new_pos[0]+1, new_pos[1])                 # Fall down
             
-            if Busted(enemies, new_pos, pmm):
+            if Busted(enemies, new_pos, pMM):
                 if MM:
                     return True, new_pos, R
                 if Fans:
@@ -40,23 +41,23 @@ def Move_Left(new_pos, grid, solids, enemies, pmm, MM, Fans):
             if grid[new_pos[0], new_pos[1]-1] != 2:              # Check if he can move left
                 new_pos = (new_pos[0], new_pos[1]-1)             # Move left 
 
-                if Busted(enemies, new_pos, pmm):
+                if Busted(enemies, new_pos, pMM):
                     if MM:
                         return True, new_pos, R
                     if Fans:
                         R = -(randint(20, 100))
                 
-                if grid[new_pos[0]+1, new_pos[1]] not in solids: # Check if he can fall
-                    new_pos = (new_pos[0]+1, new_pos[1])         # Fall down
+                if grid[new_pos[0]+1, new_pos[1]] not in solids:  # Check if he can fall
+                    new_pos = (new_pos[0]+1, new_pos[1])          # Fall down
                     if MM:
                         return True, new_pos, R
                     if Fans:
                         R = -(randint(20, 100))
             else:
-                if grid[new_pos[0]+1, new_pos[1]] not in solids: # Check if he can fall
-                    new_pos = (new_pos[0]+1, new_pos[1])         # Fall down
+                if grid[new_pos[0]+1, new_pos[1]] not in solids:  # Check if he can fall
+                    new_pos = (new_pos[0]+1, new_pos[1])          # Fall down
 
-                    if Busted(enemies, new_pos, pmm):
+                    if Busted(enemies, new_pos, pMM):
                         if MM:
                             return True, new_pos, R
                         if Fans:
@@ -65,7 +66,7 @@ def Move_Left(new_pos, grid, solids, enemies, pmm, MM, Fans):
         if grid[new_pos[0]+1, new_pos[1]] not in solids:         # Check if he can fall
             new_pos = (new_pos[0]+1, new_pos[1])                 # Fall down
 
-            if Busted(enemies, new_pos, pmm):
+            if Busted(enemies, new_pos, pMM):
                 if MM:
                     return True, new_pos, R
                 if Fans:
@@ -74,19 +75,19 @@ def Move_Left(new_pos, grid, solids, enemies, pmm, MM, Fans):
             if grid[new_pos[0]+1, new_pos[1]] not in solids:     # Check if he can fall
                 new_pos = (new_pos[0]+1, new_pos[1])             # Fall down
 
-                if Busted(enemies, new_pos, pmm):
+                if Busted(enemies, new_pos, pMM):
                     return True, new_pos, R
 
     return False, new_pos, R
 
 
-def Move_Right(new_pos, grid, solids, enemies, pmm, MM, Fans):
+def Move_Right(new_pos, grid, solids, enemies, pMM, MM, Fans):
     R = -1
     
     if grid[new_pos[0], new_pos[1]+1] != 2:                      # Check if he can move right
         new_pos = (new_pos[0], new_pos[1]+1)                     # Move right 
         
-        if Busted(enemies, new_pos, pmm):
+        if Busted(enemies, new_pos, pMM):
             if MM:
                 return True, new_pos, R
             if Fans:
@@ -95,7 +96,7 @@ def Move_Right(new_pos, grid, solids, enemies, pmm, MM, Fans):
         if grid[new_pos[0]+1, new_pos[1]] not in solids:         # Check if he can fall
             new_pos = (new_pos[0]+1, new_pos[1])                 # Fall down
             
-            if Busted(enemies, new_pos, pmm):
+            if Busted(enemies, new_pos, pMM):
                 if MM:
                     return True, new_pos, R
                 if Fans:
@@ -104,25 +105,25 @@ def Move_Right(new_pos, grid, solids, enemies, pmm, MM, Fans):
             if grid[new_pos[0], new_pos[1]+1] != 2:              # Check if he can move right
                 new_pos = (new_pos[0], new_pos[1]+1)             # Move right 
 
-                if Busted(enemies, new_pos, pmm):
+                if Busted(enemies, new_pos, pMM):
                     if MM:
                         return True, new_pos, R
                     if Fans:
                         R = -(randint(20, 100))
                 
-                if grid[new_pos[0]+1, new_pos[1]] not in solids: # Check if he can fall
-                    new_pos = (new_pos[0]+1, new_pos[1])         # Fall down
+                if grid[new_pos[0]+1, new_pos[1]] not in solids:  # Check if he can fall
+                    new_pos = (new_pos[0]+1, new_pos[1])          # Fall down
 
-                    if Busted(enemies, new_pos, pmm):
+                    if Busted(enemies, new_pos, pMM):
                         if MM:
                             return True, new_pos, R
                         if Fans:
                             R = -(randint(20, 100))
             else:
-                if grid[new_pos[0]+1, new_pos[1]] not in solids: # Check if he can fall
-                    new_pos = (new_pos[0]+1, new_pos[1])         # Fall down
+                if grid[new_pos[0]+1, new_pos[1]] not in solids:  # Check if he can fall
+                    new_pos = (new_pos[0]+1, new_pos[1])          # Fall down
 
-                    if Busted(enemies, new_pos, pmm):
+                    if Busted(enemies, new_pos, pMM):
                         if MM:
                             return True, new_pos, R
                         if Fans:
@@ -131,7 +132,7 @@ def Move_Right(new_pos, grid, solids, enemies, pmm, MM, Fans):
         if grid[new_pos[0]+1, new_pos[1]] not in solids:         # Check if he can fall
             new_pos = (new_pos[0]+1, new_pos[1])                 # Fall down
 
-            if Busted(enemies, new_pos, pmm):
+            if Busted(enemies, new_pos, pMM):
                 if MM:
                     return True, new_pos, R
                 if Fans:
@@ -140,7 +141,7 @@ def Move_Right(new_pos, grid, solids, enemies, pmm, MM, Fans):
             if grid[new_pos[0]+1, new_pos[1]] not in solids:     # Check if he can fall
                 new_pos = (new_pos[0]+1, new_pos[1])             # Fall down
 
-                if Busted(enemies, new_pos, pmm):
+                if Busted(enemies, new_pos, pMM):
                     if MM:
                         return True, new_pos, R
                     if Fans:
@@ -149,14 +150,14 @@ def Move_Right(new_pos, grid, solids, enemies, pmm, MM, Fans):
     return False, new_pos, R
 
 
-def Move_Jump(new_pos, grid, solids, enemies, pmm, MM, Fans, rocket_motor):
+def Move_Jump(new_pos, grid, solids, enemies, pMM, MM, Fans, rocket_motor):
     R = -5
     
     if grid[new_pos[0] + 1, new_pos[1]] in solids:               # Checks if he stands on a surface
         if grid[new_pos[0] - 1, new_pos[1]] != 2:                # Checks if he can jump
             new_pos = (new_pos[0] - 1, new_pos[1])               # He jumps
             
-            if Busted(enemies, new_pos, pmm):
+            if Busted(enemies, new_pos, pMM):
                 if MM:
                     return True, new_pos, R
                 if Fans:
@@ -165,7 +166,7 @@ def Move_Jump(new_pos, grid, solids, enemies, pmm, MM, Fans, rocket_motor):
             if grid[new_pos[0] - 1, new_pos[1]] != 2:            # Checks if he will hit a roof    
                 new_pos = (new_pos[0] - 1, new_pos[1])           # If not he keeps on going
                 
-                if Busted(enemies, new_pos, pmm):
+                if Busted(enemies, new_pos, pMM):
                     if MM:
                         return True, new_pos, R
                     if Fans:
@@ -179,7 +180,7 @@ def Move_Jump(new_pos, grid, solids, enemies, pmm, MM, Fans, rocket_motor):
             R = 0
             new_pos = (new_pos[0] + 1, new_pos[1])               # He falls down one step
 
-            if Busted(enemies, new_pos, pmm):
+            if Busted(enemies, new_pos, pMM):
                 if MM:
                     return True, new_pos, R
                 if Fans:
@@ -188,7 +189,7 @@ def Move_Jump(new_pos, grid, solids, enemies, pmm, MM, Fans, rocket_motor):
             if grid[new_pos[0] + 1, new_pos[1]] not in solids:   # Checks if he hit the ground
                 new_pos = (new_pos[0] + 1, new_pos[1])           # If not he falls further
                 
-                if Busted(enemies, new_pos, pmm):
+                if Busted(enemies, new_pos, pMM):
                     if MM:
                         return True, new_pos, R
                     if Fans:

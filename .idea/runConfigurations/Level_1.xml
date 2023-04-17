@@ -1,18 +1,18 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="main" type="PythonConfigurationType" factoryName="Python" singleton="false">
+  <configuration default="false" name="Level 1" type="PythonConfigurationType" factoryName="Python" singleton="false">
     <module name="Hubert-Final-Project" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="/Library/Frameworks/Python.framework/Versions/3.11/bin/python3" />
+    <option name="SDK_HOME" value="C:\Users\Fredrik\AppData\Local\Programs\Python\Python311\python.exe" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/project" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/project/src/main.py" />
+    <option name="SCRIPT_NAME" value="C:\Users\Fredrik\Documents\GitHub\Hubert-Final-Project\project\src\level_2.py" />
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

@@ -7,12 +7,6 @@ def Reward(SA_1, Sa_2, R, alpha=0.3, gamma=1.0):
     return SA_1 + alpha * (R + (gamma * max(Sa_2) - SA_1))
 
 
-def Busted(enemies, pos, pmm=0.0):
-    if pos in enemies and uniform(0, 1) < pmm:
-        return True
-    return False
-
-
 def Walking_MM(enemy):
     pos = enemy
     i, j = pos[0], pos[1]

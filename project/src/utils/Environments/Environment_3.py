@@ -104,6 +104,7 @@ class Environment_3(BaseEnv):
         return hash(grid)
 
     def update_enemies(self):
+        new_positions = set()
         for fan in self.walking_fans:
             y, x = fan
 
@@ -119,7 +120,8 @@ class Environment_3(BaseEnv):
                     x -= 1
                 else:
                     x += choice([-1, 1])
-            fan = y, x
+            new_positions.add((y, x))
+        self.walking_fans = new_positions
 
     def seen(self):
         return (self.y, self.x) in self.enemies and uniform() < self.pMM
@@ -144,10 +146,10 @@ class Environment_3(BaseEnv):
         def draw_frame(time_step, t, y, x, fans):
             old_val_1 = self.grid[y, x]
             self.grid[y, x] = 5
-            prev_fan_vals = {}
+            o_vals = {}
 
             for fan in fans:
-                prev_fan_vals[fan] = self.grid[fan]
+                o_vals[fan] = self.grid[fan]
                 self.grid[fan] = 4
 
             figure(figsize=(10, 10))
@@ -160,7 +162,7 @@ class Environment_3(BaseEnv):
 
             self.grid[y, x] = old_val_1
 
-            for fan in prev_fan_vals:
+            for fan in o_vals:
                 self.grid[fan] = o_vals[fan]
 
             savefig(f'gif/img_{time_step}.png')

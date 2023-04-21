@@ -11,7 +11,7 @@ def read_tsv_file(filename: str, enemies: set, start: tuple, end: tuple) -> ndar
     :return: An array representing the values from file
     """
 
-    with open(f'project_data/{filename}') as file:
+    with open(f'resources/{filename}') as file:
         content = file.readlines()
         y, x = len(content), len(content[0].split('\t'))
         grid = zeros((y, x), dtype=float)
@@ -31,9 +31,9 @@ def read_tsv_file(filename: str, enemies: set, start: tuple, end: tuple) -> ndar
     return grid
 
 
-def read_MM(filename) -> set:
+def read_MM(filename: str) -> set:
     """
-    Reads a TSV file and puts the value in an array to represent the track/hill.
+    Reads a TSV file and puts the value in an array to represent the Middle Managers.
     :param filename:
     :return: An dict representing the values from file
     """
@@ -46,14 +46,15 @@ def read_MM(filename) -> set:
             MM.add((y - 1, x - 1))
     return MM
 
-def read_walking_MM(filename) -> set:
+
+def read_walking_MM(filename: str) -> set:
     """
-    Reads a TSV file and puts the value in an array to represent the track/hill.
+    Reads a TSV file and puts the value in an array to represent the walking Middle Managers.
     :param filename:
     :return: An dict representing the values from file
     """
     MM = set()
-    with open(f'project_data/{filename}') as file:
+    with open(f'resources/{filename}') as file:
         content = file.readlines()
         for line in content:
             line = line.split('\t')
@@ -61,3 +62,19 @@ def read_walking_MM(filename) -> set:
 
             MM.add((y - 1, x - 1))
     return MM
+
+
+def read_fans(filename: str) -> set:
+    """
+    Reads a TSV file and puts the value in an array to represent the fans.
+    :param filename:
+    :return: An dict representing the values from file
+    """
+    fans = {}
+    with open(f'resources/{filename}') as file:
+        content = file.readlines()
+        for line in content:
+            line = line.split('\t')
+            y, x_1, x_2 = (int(z) for z in line)
+            fans[y-1] = (x_1 - 1, x_2 - 1)
+    return fans

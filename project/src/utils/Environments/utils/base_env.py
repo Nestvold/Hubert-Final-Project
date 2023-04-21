@@ -6,6 +6,7 @@ from imageio import mimsave
 from numpy import ndarray
 import os
 
+
 class GridValues:
     def __init__(self, grid: ndarray):
         self.min = 0
@@ -30,7 +31,7 @@ class BaseEnv:
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
 
-    def in_end_state(self, y: int, x: int) -> bool:
+    def in_end_state(self) -> bool:
         raise NotImplementedError
 
     def step(self, action: int) -> tuple[tuple[int, int], float, bool]:
@@ -69,12 +70,12 @@ class BaseEnv:
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
 
-        def draw_frame(time_step, y, x):
+        def draw_frame(time_step, t, y, x):
             old_val = self.grid[y, x]
             self.grid[y, x] = 5
             figure(figsize=(10, 10))
             fig = heatmap(self.grid, cmap=colors, cbar=color_bar)
-            title(f'{self.name} \ncost: {time_step + 1}', size=30)
+            title(f'{self.name} \ncost: {t + 1}', size=30)
 
             for _, spine in fig.spines.items():
                 spine.set_visible(True)
@@ -85,11 +86,10 @@ class BaseEnv:
             savefig(f'gif/img_{time_step}.png')
             close()
 
-        # Unwrap state (y, x, b)
-        y_values, x_values = zip(*agent)
+        y_values, x_values, t_values = zip(*agent)
 
         for t in range(len(x_values)):
-            draw_frame(t, y_values[t], x_values[t])
+            draw_frame(t, t_values[t], y_values[t], x_values[t])
 
         frames = []
 

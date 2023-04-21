@@ -1,1 +1,2 @@
-from .sarsa import *
+from .TemporalDifference import *
+from .MultiArmedBandit import *

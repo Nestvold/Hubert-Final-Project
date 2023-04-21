@@ -27,7 +27,7 @@ class Environment_1(BaseEnv):
 
         return array(grid)
 
-    def step(self, action: int) -> tuple[tuple[int, int], float, bool]:
+    def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[tuple[int, int], float, bool]:
         done = False
         reward = -1
         dy, dx = self.action_mapping[action]
@@ -36,12 +36,18 @@ class Environment_1(BaseEnv):
             if self.can_go(self.y, self.x + dx):
                 self.x += dx
 
+                if track:
+                    trajectory.append((self.y, self.x, t))
+
                 if self.seen():
                     self.y, self.x = 30, 1
                     return (self.y, self.x), reward, done
 
                 if not self.on_solid_grounds():
                     self.y += 1
+
+                    if track:
+                        trajectory.append((self.y, self.x, t))
 
                     if self.seen():
                         self.y, self.x = 30, 1
@@ -50,6 +56,9 @@ class Environment_1(BaseEnv):
                     if self.can_go(self.y, self.x + dx):
                         self.x += dx
 
+                        if track:
+                            trajectory.append((self.y, self.x, t))
+
                         if self.seen():
                             self.y, self.x = 30, 1
                             return (self.y, self.x), reward, done
@@ -57,13 +66,20 @@ class Environment_1(BaseEnv):
                         if not self.on_solid_grounds():
                             self.y += 1
 
+                            if track:
+                                trajectory.append((self.y, self.x, t))
+
                             if self.seen():
                                 self.y, self.x = 30, 1
                                 return (self.y, self.x), reward, done
         else:
+            reward -= 4
             if self.on_solid_grounds():
                 if self.can_go(self.y + dy, self.x):
                     self.y += dy
+
+                    if track:
+                        trajectory.append((self.y, self.x, t))
 
                     if self.seen():
                         self.y, self.x = 30, 1
@@ -72,13 +88,27 @@ class Environment_1(BaseEnv):
                     if self.can_go(self.y + dy, self.x):
                         self.y += dy
 
+                        if track:
+                            trajectory.append((self.y, self.x, t))
+
                         if self.seen():
                             self.y, self.x = 30, 1
                             return (self.y, self.x), reward, done
             else:
                 self.y += 1
+
+                if track:
+                    trajectory.append((self.y, self.x, t))
+
+                if self.seen():
+                    self.y, self.x = 30, 1
+                    return (self.y, self.x), reward, done
+
                 if not self.on_solid_grounds():
                     self.y += 1
+
+                    if track:
+                        trajectory.append((self.y, self.x, t))
 
                     if self.seen():
                         self.y, self.x = 30, 1

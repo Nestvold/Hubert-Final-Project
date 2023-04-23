@@ -27,7 +27,7 @@ class SARSA:
             action = self.epsilon_greedy(state)
 
             # Repeat for each step of the episode
-            for _ in range(4_000_000):
+            while True:
                 # Take action A, observe R and S'
                 next_state, reward, done = self.env.step(action)
 
@@ -67,19 +67,28 @@ class SARSA:
     def get_optimal_trajectory(self) -> tuple[list, int]:
         trajectory = []
         state = self.env.reset()
-        trajectory.append((30, 1, self.env.walking_fans, 0))
+        # Level 2
+        if self.env.name == 'Level 2':
+            trajectory.append((30, 1))
+        # Level 3
+        elif self.env.name == 'Level 3':
+            trajectory.append((30, 1, self.env.enemy, 0))
+        # Level 4
+        elif self.env.name == 'Level 4':
+            trajectory.append((30, 1, self.env.walking_fans, 0))
         t = -1
-
-        for _ in range(100):
+        total_reward = 0
+        while True:
             t += 1
             # Get best action from current state
-            action = choice([0, 1, 2])  # argmax(self.Q[state])
+            action = argmax(self.Q[state])
             # Take the step and look around
-            next_state, _, done = self.env.step(action, track=True, t=t, trajectory=trajectory)
+            next_state, reward, done = self.env.step(action, track=True, t=t, trajectory=trajectory)
             # Update state
             state = next_state
+            total_reward += reward
 
             if done:
                 break
 
-        return trajectory, len(trajectory)
+        return trajectory, total_reward

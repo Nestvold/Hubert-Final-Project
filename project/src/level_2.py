@@ -5,7 +5,7 @@ from project.src.utils import SARSA, read_tsv_file, read_MM
 MM = read_MM('../resources/enemies_1.dat')
 grid = read_tsv_file('../resources/map_1.dat', enemies=MM, start=(30, 1), end=(1, 30))
 
-env = Environment(name="Level 2, pMM=0.00", grid=grid, enemies=MM, pMM=0.00, project_path='Levels')
+env = Environment(name="Level 2", grid=grid, enemies=MM, pMM=0.00, project_path='Levels')
 # env.plot(color_bar=False, save=True)
 
 sarsa = SARSA(environment=env, epsilon=0.0)

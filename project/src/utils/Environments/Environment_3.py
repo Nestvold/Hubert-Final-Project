@@ -1,6 +1,7 @@
 from matplotlib.pyplot import title, savefig, figure, close
-from numpy.random import uniform, choice
-from numpy import array, zeros, ndarray
+from numpy.random import uniform, choice, randint
+from numpy import array, zeros, ndarray, save
+from collections import defaultdict
 from imageio.v2 import imread
 from imageio import mimsave
 from seaborn import heatmap
@@ -10,20 +11,24 @@ import os
 
 
 class Environment_3(BaseEnv):
-    def __init__(self, name: str, grid: ndarray, enemies: set, pMM: float = 1.0, project_path: str = '', data: dict = None):
+    def __init__(self, name: str, grid: ndarray, enemies: set, project_path: str = '', data: dict = None):
         super().__init__(name, grid, project_path, data)
         self.enemies = {key: list(value) for key, value in enemies.items()}
-        self.pMM = pMM
+        self.walking_fans = {key: [randint(value[0], value[1])] for key, value in self.enemies.items()}
+        self.walking_fans[3].append(4)
 
         # State
         self.y: int = 30
         self.x: int = 1
-        self.walking_fans = {(key, value[0]) for key, value in enemies.items()}
+        self.scan = None
 
     def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[tuple[int, int, int], float, bool]:
         done = False
         reward = -1
         dy, dx = self.action_mapping[action]
+
+        # Move fans
+        self.update_enemies()
 
         if action in [0, 2]:
             if self.can_go(self.y, self.x + dx):
@@ -68,69 +73,62 @@ class Environment_3(BaseEnv):
                     self.y += 1
                     if track: trajectory.append((self.y, self.x, self.walking_fans, t))
 
-        scan = self.scan_surroundings()
-
-        # Check if MM sees us in the new position
-        if self.seen():
-            self.y, self.x = 30, 1
-            if track: trajectory.append((self.y, self.x, self.walking_fans, t))
-            return (self.y, self.x, scan), reward, done
-
-        # Move MM
-        self.update_enemies()
-
-        if track: trajectory.append((self.y, self.x, self.walking_fans, t))
-
-        # Check if MM sees us
-        if self.seen():
-            self.y, self.x = 30, 1
-            if track: trajectory.append((self.y, self.x, self.walking_fans, t))
-            return (self.y, self.x, scan), reward, done
+        # Check if fan sees us in the new position
+        reward += self.seen()
 
         if self.in_end_state():
             done = True
             reward = 0
 
-        return (self.y, self.x, scan), reward, done
+        self.scan_surroundings()
 
-    def scan_surroundings(self):
+        return (self.y, self.x, self.scan), reward, done
+
+    def scan_surroundings(self) -> None:
         area = zeros(shape=(9, 9))
+        enemies = set((key, value) for key, values in self.walking_fans.items() for value in values)
+
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
-                if self.on_grid(y_v, x_v) and (y, x) in self.enemies:
+                if self.on_grid(y_v, x_v) and (y, x) in enemies:
                     area[y, x] = 1
 
         grid = tuple(map(tuple, area))
-        return hash(grid)
+        self.scan = hash(grid)
 
     def update_enemies(self):
-        new_positions = set()
-        for fan in self.walking_fans:
-            y, x = fan
+        new_positions = {}
 
-            if self.y == y:
-                if self.x < x < self.enemies[y][0]:
-                    x -= 1
-                elif self.x > x > self.enemies[y][1]:
-                    x += 1
-            else:
-                if x == self.enemies[y][0]:
-                    x += 1
-                elif x == self.enemies[y][1]:
-                    x -= 1
+        for y, fans in self.walking_fans.items():
+            new_positions[y] = []
+            for fan in fans:
+                if self.y == y:
+                    if self.x < fan > self.enemies[y][0]:
+                        fan -= 1
+                    if self.x > fan < self.enemies[y][1]:
+                        fan += 1
                 else:
-                    x += choice([-1, 1])
-            new_positions.add((y, x))
+                    if fan == self.enemies[y][0]:
+                        fan += 1
+                    elif fan == self.enemies[y][1]:
+                        fan -= 1
+                    else:
+                        fan += choice([-1, 1])
+                new_positions[y].append(fan)
+
         self.walking_fans = new_positions
 
     def seen(self):
-        return (self.y, self.x) in self.enemies and uniform() < self.pMM
+        reward = 0
+        enemies = set((key, value) for key, values in self.walking_fans.items() for value in values)
+        if (self.y, self.x) in enemies:
+            reward -= randint(19, 99)
+            if self.y == 4 and len(enemies) == 3:
+                reward -= randint(20, 100)
+        return reward
 
     def on_solid_grounds(self):
         return self.grid[self.y + 1, self.x] in self.solids
-
-    def encountered_enemy(self, y: int, x: int) -> bool:
-        return (y, x) in self.enemies and self.pMM > uniform()
 
     def in_end_state(self) -> bool:
         return self.y == 1 and self.x == 30
@@ -138,32 +136,27 @@ class Environment_3(BaseEnv):
     def reset(self) -> tuple[int, int, int]:
         self.y = 30
         self.x = 1
-        return self.y, self.x
+        self.scan_surroundings()
+        return self.y, self.x, self.scan
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
 
         def draw_frame(time_step, t, y, x, fans):
-            old_val_1 = self.grid[y, x]
-            self.grid[y, x] = 5
-            o_vals = {}
+            template = self.grid.copy()
+            template[y, x] = 5
 
-            for fan in fans:
-                o_vals[fan] = self.grid[fan]
-                self.grid[fan] = 4
+            for s, x_s in fans.items():
+                for j in x_s:
+                    template[s, j] = 4
 
             figure(figsize=(10, 10))
-            fig = heatmap(self.grid, cmap=colors, cbar=color_bar)
+            fig = heatmap(template, cmap=colors, cbar=color_bar)
             title(f'{self.name} \ncost: {t + 1}', size=30)
 
             for _, spine in fig.spines.items():
                 spine.set_visible(True)
                 spine.set_linewidth(1)
-
-            self.grid[y, x] = old_val_1
-
-            for fan in o_vals:
-                self.grid[fan] = o_vals[fan]
 
             savefig(f'gif/img_{time_step}.png')
             close()

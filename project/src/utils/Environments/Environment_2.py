@@ -140,19 +140,18 @@ class Environment_2(BaseEnv):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
 
         def draw_frame(time_step, t, y, x, MM):
-            old_val_1 = self.grid[y, x]
-            self.grid[y, x] = 5
-            self.grid[20, MM] = 4
+            template = self.grid.copy()
+            template[y, x] = 5
+            template[20, MM] = 4
+
             figure(figsize=(10, 10))
-            fig = heatmap(self.grid, cmap=colors, cbar=color_bar)
+            fig = heatmap(template, cmap=colors, cbar=color_bar)
             title(f'{self.name} \ncost: {t + 1}', size=30)
 
             for _, spine in fig.spines.items():
                 spine.set_visible(True)
                 spine.set_linewidth(1)
 
-            self.grid[y, x] = old_val_1
-            self.grid[20, MM] = 1
             savefig(f'gif/img_{time_step}.png')
             close()
 

@@ -64,7 +64,7 @@ class BaseEnv:
         title(self.name.capitalize(), size=30)
 
         if save:
-            savefig(f'{self.project_path}/assets/{self.name}.png')
+            savefig(f'{self.project_path}/images/{self.name}.png')
         show()
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):

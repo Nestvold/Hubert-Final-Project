@@ -57,50 +57,50 @@ class OpenAIEnv(Env, ABC):
         if action in [0, 2]:
             if self.can_go(self.y, self.x + dx):
                 self.x += dx
-                if track: trajectory.append((self.y, self.x, t))
+                if track: trajectory.append((self.y, self.x, reward, t))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, t))
+                    if track: trajectory.append((self.y, self.x, reward, t))
 
                     if self.can_go(self.y, self.x + dx):
                         self.x += dx
-                        if track: trajectory.append((self.y, self.x, t))
+                        if track: trajectory.append((self.y, self.x, reward, t))
 
                         if not self.on_solid_grounds():
                             self.y += 1
-                            if track: trajectory.append((self.y, self.x, t))
+                            if track: trajectory.append((self.y, self.x, reward, t))
             else:
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, t))
+                    if track: trajectory.append((self.y, self.x, reward, t))
 
                     if not self.on_solid_grounds():
                         self.y += 1
-                    if track: trajectory.append((self.y, self.x, t))
+                    if track: trajectory.append((self.y, self.x, reward, t))
         else:
             reward -= 4
             if self.on_solid_grounds():
                 if self.can_go(self.y + dy, self.x):
                     self.y += dy
-                    if track: trajectory.append((self.y, self.x, t))
+                    if track: trajectory.append((self.y, self.x, reward, t))
 
                     if self.can_go(self.y + dy, self.x):
                         self.y += dy
-                        if track: trajectory.append((self.y, self.x, t))
+                        if track: trajectory.append((self.y, self.x, reward, t))
 
             elif random() < 1 / 3 and self.can_go(self.y + dy, self.x):
                 reward += 2
                 self.y += dy
-                if track: trajectory.append((self.y, self.x, t))
+                if track: trajectory.append((self.y, self.x, reward, t))
 
             else:
                 self.y += 1
-                if track: trajectory.append((self.y, self.x, t))
+                if track: trajectory.append((self.y, self.x, reward, t))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, t))
+                    if track: trajectory.append((self.y, self.x, reward, t))
 
         if self.in_end_state():
             done = True

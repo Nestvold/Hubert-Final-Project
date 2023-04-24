@@ -74,7 +74,10 @@ class SARSA:
 
     def get_optimal_trajectory(self) -> tuple[list, int]:
         trajectory = []
-        state = self.env.reset()
+        if self.env.name == 'Level 5':
+            state, _ = self.env.reset()
+        else:
+            state = self.env.reset()
         # Level 2
         if self.env.name == 'Level 2':
             trajectory.append((30, 1, 0, 0))
@@ -84,8 +87,10 @@ class SARSA:
         # Level 4
         elif self.env.name == 'Level 4':
             trajectory.append((30, 1, self.env.walking_fans, 0, 0))
+        # Level 5
         elif self.env.name == "Level 5":
             trajectory.append((46, 1, 0, 0))
+
         t = -1
         total_reward = 0
         while True:
@@ -93,7 +98,10 @@ class SARSA:
             # Get best action from current state
             action = argmax(self.Q[state])
             # Take the step and look around
-            next_state, reward, done = self.env.step(action, track=True, t=t, trajectory=trajectory)
+            if self.env.name == "Level 5":
+                next_state, reward, done, _, _ = self.env.step(action, track=True, t=t, trajectory=trajectory)
+            else:
+                next_state, reward, done = self.env.step(action, track=True, t=t, trajectory=trajectory)
             # Update state
             state = next_state
             total_reward += reward

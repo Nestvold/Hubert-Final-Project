@@ -32,7 +32,7 @@ class SARSA:
                 # Take action A, observe R and S'
                 next_state, reward, done, _, _ = self.env.step(action)
                 if self.env.name == 'Level 5': next_state = hash(str(list(array(next_state).flatten())))
-                
+
                 # Choose A' from S' using policy derived from Q (e.g., epsilon-greedy)
                 next_action = self.epsilon_greedy(next_state)
 

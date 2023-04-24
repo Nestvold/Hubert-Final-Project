@@ -1,4 +1,4 @@
-from project.src.utils.Environments import Environment_2 as Environment
+from project.src.utils.Environments import Environment_3 as Environment
 from project.src.utils import SARSA, read_tsv_file, read_walking_MM
 
 
@@ -11,8 +11,10 @@ env = Environment(name="Level 3", grid=grid, enemies=MM, pMM=1.0, project_path='
 sarsa = SARSA(environment=env, epsilon=0.0, gamma=1.0)
 sarsa.train(num_episodes=100_000)
 
-trajectory, time = sarsa.get_optimal_trajectory()
+for i in range(20):
+    trajectory, reward, time = sarsa.get_optimal_trajectory()
 
-print(f'Trajectory:  {trajectory}')
-print(f'Energy cost: {time}')
-env.create_gif(agent=trajectory)
+    print(f'Energy cost: {reward}')
+    print(f'Total time: {time}')
+
+    env.create_gif(agent=trajectory)

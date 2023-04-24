@@ -4,6 +4,7 @@ from seaborn import heatmap
 from imageio.v2 import imread
 from imageio import mimsave
 from numpy import ndarray
+from tqdm import tqdm
 import os
 
 
@@ -69,13 +70,22 @@ class BaseEnv:
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
+        r = 0
+        i = 0
 
-        def draw_frame(time_step, t, y, x):
+        def draw_frame(time_step, t, y, x, reward):
+            nonlocal r
+            nonlocal i
+
+            if t == i:
+                r += abs(reward)
+                i += 1
+
             old_val = self.grid[y, x]
             self.grid[y, x] = 5
             figure(figsize=(10, 10))
             fig = heatmap(self.grid, cmap=colors, cbar=color_bar)
-            title(f'{self.name} \ncost: {t + 1}', size=30)
+            title(f'{self.name} \nTime: {t + 1} | Energy: {r}', size=25)
 
             for _, spine in fig.spines.items():
                 spine.set_visible(True)
@@ -86,30 +96,30 @@ class BaseEnv:
             savefig(f'gif/img_{time_step}.png')
             close()
 
-        y_values, x_values, t_values = zip(*agent)
+        y_values, x_values, rewards, t_values = zip(*agent)
 
-        for t in range(len(x_values)):
-            draw_frame(t, t_values[t], y_values[t], x_values[t])
+        for t in tqdm(range(len(x_values)), desc='[CREATING PLOTS]'):
+            draw_frame(t, t_values[t], y_values[t], x_values[t], rewards[t])
 
         frames = []
 
-        for t in range(len(x_values)):
+        for t in tqdm(range(len(x_values)), desc='[CREATING  GIF ]'):
             image = imread(f'gif/img_{t}.png')
             frames.append(image)
 
-        mimsave(uri=f'Levels/gifs/{self.name}.gif',
+        mimsave(uri=f'Levels/gifs/{self.name}_{r}.gif',
                 ims=frames,
-                fps=10
+                fps=8
                 )
 
-        #Delete plots
+        # Delete plots
         folder_path = "gif"
 
         # Get all the file names in the folder
         files = os.listdir(folder_path)
 
         # Loop through the files and delete them
-        for file_name in files:
+        for file_name in tqdm(files, desc='[DELETING PLOTS]'):
             file_path = os.path.join(folder_path, file_name)
             try:
                 if os.path.isfile(file_path):
@@ -118,3 +128,4 @@ class BaseEnv:
                     os.rmdir(file_path)
             except Exception as e:
                 print(f"Failed to delete {file_path}. Reason: {e}")
+        print('[DONE]')

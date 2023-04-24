@@ -69,13 +69,13 @@ class SARSA:
         state = self.env.reset()
         # Level 2
         if self.env.name == 'Level 2':
-            trajectory.append((30, 1))
+            trajectory.append((30, 1, 0, 0))
         # Level 3
         elif self.env.name == 'Level 3':
-            trajectory.append((30, 1, self.env.enemy, 0))
+            trajectory.append((30, 1, self.env.enemy, 0, 0))
         # Level 4
         elif self.env.name == 'Level 4':
-            trajectory.append((30, 1, self.env.walking_fans, 0))
+            trajectory.append((30, 1, self.env.walking_fans, 0, 0))
         t = -1
         total_reward = 0
         while True:
@@ -91,4 +91,4 @@ class SARSA:
             if done:
                 break
 
-        return trajectory, total_reward
+        return trajectory, total_reward, t

@@ -131,6 +131,7 @@ class OpenAIEnv(Env, ABC):
         return self.y == 1 and self.x == 46
 
     def reset(self) -> ndarray:
+        self.y, self.x = 46, 1
         self.scan_surroundings()
         return self.surroundings, {}
 

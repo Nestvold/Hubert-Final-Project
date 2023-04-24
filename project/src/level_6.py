@@ -7,9 +7,9 @@ grid = read_tsv_file('../resources/map_4.dat', enemies={}, start=(46, 1), end=(1
 
 env = Environment(name="Level 5", grid=grid, project_path='Levels')
 env = FrameStack(env=env, num_stack=2)
-# env.plot(color_bar=False, save=True)
 
-sarsa = SARSA(environment=env, epsilon=0.0, gamma=1.0)
+
+sarsa = SARSA(environment=env, epsilon=0.1, gamma=1.0)
 sarsa.train(num_episodes=100_000)
 
 

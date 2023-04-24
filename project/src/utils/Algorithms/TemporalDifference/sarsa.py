@@ -28,7 +28,10 @@ class SARSA:
             action = self.epsilon_greedy(state)
 
             # Repeat for each step of the episode
+            #i = 0
             while True:
+                #i += 1
+                #if i % 10_000 == 0: print(f'{i:,}'.replace(',', ' '), self.env.y, self.env.x, action)
                 # Take action A, observe R and S'
                 next_state, reward, done, _, _ = self.env.step(action)
                 if self.env.name == 'Level 5': next_state = hash(str(list(array(next_state).flatten())))
@@ -81,6 +84,8 @@ class SARSA:
         # Level 4
         elif self.env.name == 'Level 4':
             trajectory.append((30, 1, self.env.walking_fans, 0, 0))
+        elif self.env.name == "Level 5":
+            trajectory.append((46, 1, 0, 0))
         t = -1
         total_reward = 0
         while True:

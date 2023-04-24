@@ -14,7 +14,7 @@ class SARSA:
 
         # Initialize Q(s, a) to 0 for all s and a using dict
         self.Q = defaultdict(lambda: zeros(shape=3))
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.0
         self.alpha_min = 0.1
 
     def train(self, num_episodes: int = 1_000):
@@ -28,10 +28,7 @@ class SARSA:
             action = self.epsilon_greedy(state)
 
             # Repeat for each step of the episode
-            #i = 0
             while True:
-                #i += 1
-                #if i % 10_000 == 0: print(f'{i:,}'.replace(',', ' '), self.env.y, self.env.x, action)
                 # Take action A, observe R and S'
                 next_state, reward, done, _, _ = self.env.step(action)
                 if self.env.name == 'Level 5': next_state = hash(str(list(array(next_state).flatten())))

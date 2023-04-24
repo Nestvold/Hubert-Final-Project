@@ -46,8 +46,7 @@ class OpenAIEnv(Env, ABC):
         # Start state
         self.scan_surroundings()
 
-    def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[
-        ndarray, float, bool]:
+    def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[ndarray, float, bool]:
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
 
@@ -109,7 +108,7 @@ class OpenAIEnv(Env, ABC):
 
         self.scan_surroundings()
 
-        return self.surroundings, reward, done, {}
+        return self.surroundings, reward, done, False,  {}
 
     def scan_surroundings(self) -> None:
         area = zeros(shape=(9, 9))
@@ -133,7 +132,7 @@ class OpenAIEnv(Env, ABC):
 
     def reset(self) -> ndarray:
         self.scan_surroundings()
-        return self.surroundings
+        return self.surroundings, {}
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']

@@ -83,7 +83,7 @@ class Environment_5(BaseEnv):
 
         self.scan_surroundings()
 
-        return (self.y, self.x, self.scan), reward, done
+        return self.scan, reward, done
 
     def scan_surroundings(self) -> None:
         area = zeros(shape=(9, 9))

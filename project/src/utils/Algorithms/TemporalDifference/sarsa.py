@@ -1,5 +1,5 @@
 from numpy.random import uniform, choice
-from numpy import argmax, zeros
+from numpy import argmax, zeros, array
 from collections import defaultdict
 from tqdm import tqdm
 
@@ -21,7 +21,8 @@ class SARSA:
         # Repeat for each episode
         for episode in tqdm(range(num_episodes), desc='Episode'):
             # Initialize state
-            state = self.env.reset()
+            state, _ = self.env.reset()
+            if self.env.name == 'Level 5': state = hash(str(list(array(state).flatten())))
 
             # Choose A from S using policy derived from Q (e.g., epsilon-greedy)
             action = self.epsilon_greedy(state)
@@ -29,13 +30,17 @@ class SARSA:
             # Repeat for each step of the episode
             while True:
                 # Take action A, observe R and S'
-                next_state, reward, done = self.env.step(action)
-
+                next_state, reward, done, _, _ = self.env.step(action)
+                if self.env.name == 'Level 5': next_state = hash(str(list(array(next_state).flatten())))
+                
                 # Choose A' from S' using policy derived from Q (e.g., epsilon-greedy)
                 next_action = self.epsilon_greedy(next_state)
 
                 # Update Q(S, A) <- Q(S, A) + alpha[R + gamma * Q(S', A') - Q(S, A)]
-                self.Q[state][action] += self.alpha * (reward + self.gamma * self.Q[next_state][next_action] - self.Q[state][action])
+                if self.env.name == 'Level 5':
+                    self.Q[state][action] += self.alpha * (reward + self.gamma * self.Q[next_state][next_action] - self.Q[state][action])
+                else:
+                    self.Q[state][action] += self.alpha * (reward + self.gamma * self.Q[next_state][next_action] - self.Q[state][action])
 
                 # S <- S'; A <- A'
                 state, action = next_state, next_action

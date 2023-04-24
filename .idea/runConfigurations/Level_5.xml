@@ -6,7 +6,7 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="C:\Users\Fredrik\AppData\Local\Programs\Python\Python311\python.exe" />
+    <option name="SDK_HOME" value="/usr/local/opt/python@3.10/bin/python3.10" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/project" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />

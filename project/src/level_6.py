@@ -1,4 +1,4 @@
-from project.src.utils.Environments import OpenAIEnv as Environment
+from project.src.utils.Environments import Environment_6 as Environment
 from project.src.utils import SARSA, read_tsv_file
 
 from gym.wrappers import FrameStack, LazyFrames
@@ -9,7 +9,7 @@ env = Environment(name="Level 5", grid=grid, project_path='Levels')
 env = FrameStack(env=env, num_stack=2)
 
 
-sarsa = SARSA(environment=env, epsilon=0.1, gamma=1.0)
+sarsa = SARSA(environment=env, epsilon=0.2, gamma=1.0)
 sarsa.train(num_episodes=100_000)
 
 

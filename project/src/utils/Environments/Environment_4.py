@@ -92,7 +92,7 @@ class Environment_4(BaseEnv):
 
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
-                if self.on_grid(y_v, x_v) and (y, x) in enemies:
+                if self.on_grid(y_v, x_v) and (y_v, x_v) in enemies:
                     area[y, x] = 1
 
         grid = tuple(map(tuple, area))
@@ -183,7 +183,7 @@ class Environment_4(BaseEnv):
             image = imread(f'gif/img_{t}.png')
             frames.append(image)
 
-        mimsave(uri=f'Levels/gifs/{self.name}_{r}.gif',
+        mimsave(uri=f'Levels/gifs/{self.name}_{r}_test.gif',
                 ims=frames,
                 fps=8
                 )

@@ -15,7 +15,7 @@ from gym import Env
 import os
 
 
-class OpenAIEnv(Env, ABC):
+class Environment_6(Env, ABC):
     def __init__(self, name: str, grid: ndarray, project_path: str = ''):
         self.name = name
         self.project_path = project_path
@@ -25,8 +25,8 @@ class OpenAIEnv(Env, ABC):
 
         # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
         self.observation_space = Box(
-            low=array([0] * 81),  # Low Bound
-            high=array([3] * 81),  # High Bound
+            low=array([0] * 82),  # Low Bound
+            high=array([3] * 82),  # High Bound
             dtype=int32  # Type: Integer
         )
 
@@ -44,7 +44,7 @@ class OpenAIEnv(Env, ABC):
         self.grid_x = GridValues(grid[0])
 
         # Start state
-        self.scan_surroundings()
+        self.scan_surroundings(-1)
 
     def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[ndarray, float, bool]:
         if action not in self.action_mapping:
@@ -53,6 +53,8 @@ class OpenAIEnv(Env, ABC):
         done = False
         reward = -1.0
         dy, dx = self.action_mapping[action]
+
+        last_seen = self.y
 
         if action in [0, 2]:
             if self.can_go(self.y, self.x + dx):
@@ -102,21 +104,54 @@ class OpenAIEnv(Env, ABC):
                     self.y += 1
                     if track: trajectory.append((self.y, self.x, reward, t))
 
+        # Check if fan sees us in the new position
+        reward += self.seen_by_fan()
+
+        # Move fans
+        self.update_enemies(last_seen)
+        if track: trajectory.append((self.y, self.x, self.walking_fans, reward, t))
+
+        # Check if fan sees us in their new position
+        reward += self.seen_by_fan()
+
+        # Check if MM sees us
+        if self.seen_by_MM():
+            self.y, self.x = 30, 1
+            if track: trajectory.append((self.y, self.x, self.enemy, reward, t))
+            return (self.y, self.x), reward, done
+
         if self.in_end_state():
             done = True
             reward = 0
 
-        self.scan_surroundings()
+        self.scan_surroundings(action=action)
 
         return self.surroundings, reward, done, False,  {}
 
-    def scan_surroundings(self) -> None:
+    def scan_surroundings(self, action) -> None:
         area = zeros(shape=(9, 9))
+
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
                 if self.on_grid(y_v, x_v):
                     area[y, x] = self.grid[y, x]
-        self.surroundings = area.flatten()
+
+        self.surroundings = concatenate(([action], area.flatten()))
+
+    def update_enemies(self, last_y):
+        '''
+        Update MM and Fans
+
+        :param last_y:
+        :return:
+        '''
+        raise NotImplementedError
+
+    def seen_by_MM(self):
+        return (self.y, self.x) in self.enemies and uniform() < self.pMM
+
+    def seen_by_fan(self):
+        raise NotImplementedError
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -132,7 +167,7 @@ class OpenAIEnv(Env, ABC):
 
     def reset(self) -> ndarray:
         self.y, self.x = 46, 1
-        self.scan_surroundings()
+        self.scan_surroundings(-1)
         return self.surroundings, {}
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):

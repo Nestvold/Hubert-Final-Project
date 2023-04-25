@@ -1,2 +1,2 @@
-from .sarsa import *
+from .SARSA import *
 from .QLearning import *

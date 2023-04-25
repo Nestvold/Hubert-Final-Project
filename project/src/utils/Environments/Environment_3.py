@@ -158,7 +158,7 @@ class Environment_3(BaseEnv):
 
             figure(figsize=(10, 10))
             fig = heatmap(template, cmap=colors, cbar=color_bar)
-            title(f'{self.name} \nTime: {t + 1} | Cost: {r}', size=25)
+            title(f'{self.name} \nTime: {t + 1} | Energy: {r}', size=25)
 
             for _, spine in fig.spines.items():
                 spine.set_visible(True)

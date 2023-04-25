@@ -31,7 +31,6 @@ class Environment_5(Env, ABC):
         )
 
         # State representation
-        self.best_y = 46
         self.y, self.x = 46, 1
         self.surroundings = zeros(shape=9 * 9)
 
@@ -109,18 +108,13 @@ class Environment_5(Env, ABC):
 
         self.scan_surroundings(action=action)
 
-        if self.y < self.best_y:
-            reward = 0
-            self.best_y = self.y
-
-        return self.surroundings, reward, done, False,  {}
+        return self.surroundings, reward, done, False, {}
 
     def scan_surroundings(self, action) -> None:
         area = zeros(shape=(9, 9))
 
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
-                # print(y, x, y_v, x_v)
                 if self.on_grid(y_v, x_v):
                     area[y, x] = self.grid[y_v, x_v]
                 else:
@@ -142,7 +136,6 @@ class Environment_5(Env, ABC):
         return self.y == 1 and self.x == 46
 
     def reset(self) -> ndarray:
-        self.best_y = 46
         self.y, self.x = 46, 1
         self.scan_surroundings(-1)
         return self.surroundings, {}

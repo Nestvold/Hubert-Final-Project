@@ -2,7 +2,7 @@
 from .utils import GridValues
 
 # Other modules
-from numpy import array, ndarray, zeros, int32, concatenate
+from numpy import array, ndarray, zeros, int32, concatenate, where
 from matplotlib.pyplot import title, savefig, figure, close
 from gym.spaces import Discrete, Box
 from imageio.v2 import imread
@@ -25,8 +25,8 @@ class Environment_5(Env, ABC):
 
         # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
         self.observation_space = Box(
-            low=array([-1] * 82),  # Low Bound
-            high=array([3] * 82),  # High Bound
+            low=array([-1] * 84),  # Low Bound
+            high=array([3] * 84),  # High Bound
             dtype=int32  # Type: Integer
         )
 
@@ -120,8 +120,14 @@ class Environment_5(Env, ABC):
                 else:
                     area[y, x] = -1
 
+        solids = where(self.grid[self.y] == 2)[0]
+        dist_to_left = self.x - solids[where(solids < self.x)][-1] / 45
+
+        solids = where(self.grid[self.y] == 2)[0]
+        dist_to_right = solids[where(solids > self.x)][-1] - self.x / 45
+
         action = 0 if action != 1 else 1
-        self.surroundings = concatenate(([action], area.flatten()))
+        self.surroundings = concatenate(([dist_to_left, dist_to_right, action], area.flatten()))
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0

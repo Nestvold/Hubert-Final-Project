@@ -35,7 +35,7 @@ class SARSA:
             while True:
                 # Take action A, observe R and S'
 
-                next_state, reward, done, *_ = self.env.step(action) if self.env.name == 'Level 5' else self.env.step(action), None
+                next_state, reward, done, *_ = self.env.step(action)
                 if self.env.name == 'Level 5':
                     next_state = hash(str(list(array(next_state).flatten())))
 
@@ -95,13 +95,16 @@ class SARSA:
         total_reward = 0
         while True:
             t += 1
+
+            # Hash
+            state = hash(str(list(array(state).flatten())))
             # Get best action from current state
             action = argmax(self.Q[state])
             # Take the step and look around
-            # if self.env.name == "Level 5":
-            #     next_state, reward, done, _, _ = self.env.step(action, track=True, t=t, trajectory=trajectory)
-            # else:
-            next_state, reward, done = self.env.step(action, track=True, t=t, trajectory=trajectory)
+            if self.env.name == "Level 5":
+                next_state, reward, done, _, _ = self.env.step(action, track=True, t=t, trajectory=trajectory)
+            else:
+                next_state, reward, done = self.env.step(action, track=True, t=t, trajectory=trajectory)
             # Update state
             state = next_state
             total_reward += reward

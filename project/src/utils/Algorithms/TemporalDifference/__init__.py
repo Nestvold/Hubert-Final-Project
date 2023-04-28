@@ -1,3 +1,3 @@
 from .SARSA import *
-from .SARSA_trace import *
+from .SARSA3 import *
 from .QLearning import *

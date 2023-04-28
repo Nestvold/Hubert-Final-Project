@@ -31,11 +31,13 @@ class SARSA:
             # Choose A from S using policy derived from Q (e.g., epsilon-greedy)
             action = self.epsilon_greedy(state)
 
+            trajectory = [(self.env.y, self.env.x, 0, 0)]
+
             # Repeat for each step of the episode
             while True:
                 # Take action A, observe R and S'
-
                 next_state, reward, done, *_ = self.env.step(action)
+
                 if self.env.name == 'Level 5':
                     next_state = hash(str(list(next_state)))
 

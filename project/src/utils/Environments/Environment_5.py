@@ -6,6 +6,7 @@ from numpy import array, ndarray, zeros, int32, concatenate, where
 from matplotlib.pyplot import title, savefig, figure, close
 from gym.spaces import Discrete, Box
 from imageio.v2 import imread
+from collections import deque
 from imageio import mimsave
 from seaborn import heatmap
 from random import random
@@ -23,10 +24,10 @@ class Environment_5(Env, ABC):
         # Gym
         self.action_space = Discrete(3)  # 0 = go left, 1 = jump, 2 = go right
 
-        # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
+        # y, x, 9 x 9 grid -> 0: Goal/Start, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
         self.observation_space = Box(
-            low=array([-1] * 84),  # Low Bound
-            high=array([3] * 84),  # High Bound
+            low=array([-1] * 81),  # Low Bound
+            high=array([3] * 81),  # High Bound
             dtype=int32  # Type: Integer
         )
 
@@ -47,6 +48,7 @@ class Environment_5(Env, ABC):
         self.scan_surroundings(-1)
 
     def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[ndarray, float, bool]:
+
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
 
@@ -106,7 +108,7 @@ class Environment_5(Env, ABC):
             done = True
             reward = 0
 
-        self.scan_surroundings(action=action)
+        self.scan_surroundings(action)
 
         return self.surroundings, reward, done, False, {}
 
@@ -119,15 +121,8 @@ class Environment_5(Env, ABC):
                     area[y, x] = self.grid[y_v, x_v]
                 else:
                     area[y, x] = -1
-
-        solids = where(self.grid[self.y] == 2)[0]
-        dist_to_left = self.x - solids[where(solids < self.x)][-1] / 45
-
-        solids = where(self.grid[self.y] == 2)[0]
-        dist_to_right = solids[where(solids > self.x)][-1] - self.x / 45
-
-        action = 0 if action != 1 else 1
-        self.surroundings = concatenate(([dist_to_left, dist_to_right, action], area.flatten()))
+        area[4, 4] = action
+        self.surroundings = area.flatten()
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -149,13 +144,9 @@ class Environment_5(Env, ABC):
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
 
-        def draw_frame(time_step, t, y, x, e, fans):
+        def draw_frame(time_step, t, y, x, e):
             template = self.grid.copy()
             template[y, x] = 5
-
-            for s, x_s in fans.items():
-                for j in x_s:
-                    template[s, j] = 4
 
             figure(figsize=(10, 10))
             fig = heatmap(template, cmap=colors, cbar=color_bar)
@@ -168,10 +159,10 @@ class Environment_5(Env, ABC):
             savefig(f'gif/img_{time_step}.png')
             close()
 
-        y_values, x_values, e_values, fans, t_values = zip(*agent)
+        y_values, x_values, e_values, t_values = zip(*agent)
 
         for t in tqdm(range(len(x_values)), desc='Creating plots'):
-            draw_frame(t, t_values[t], y_values[t], x_values[t], e_values[t], fans[t])
+            draw_frame(t, t_values[t], y_values[t], x_values[t], e_values[t])
 
         frames = []
 

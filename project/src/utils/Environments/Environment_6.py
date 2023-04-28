@@ -15,7 +15,7 @@ from gym import Env
 import os
 
 
-class Environment_5(Env, ABC):
+class Environment_6(Env, ABC):
     def __init__(self, name: str, grid: ndarray, project_path: str = ''):
         self.name = name
         self.project_path = project_path
@@ -106,11 +106,11 @@ class Environment_5(Env, ABC):
             done = True
             reward = 0
 
-        self.scan_surroundings(action=action)
+        self.scan_surroundings()
 
         return self.surroundings, reward, done, False, {}
 
-    def scan_surroundings(self, action) -> None:
+    def scan_surroundings(self) -> None:
         area = zeros(shape=(9, 9))
 
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
@@ -120,14 +120,7 @@ class Environment_5(Env, ABC):
                 else:
                     area[y, x] = -1
 
-        # solids = where(self.grid[self.y] == 2)[0]
-        # dist_to_left = self.x - solids[where(solids < self.x)][-1] / 45
-
-        # solids = where(self.grid[self.y] == 2)[0]
-        # dist_to_right = solids[where(solids > self.x)][-1] - self.x / 45
-
-        # action = 0 if action != 1 else 1
-        self.surroundings = concatenate(([self.y / 44], area.flatten()))
+        self.surroundings = area.flatten()
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0

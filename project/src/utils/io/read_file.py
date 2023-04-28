@@ -38,7 +38,7 @@ def read_MM(filename: str) -> set:
     :return: An dict representing the values from file
     """
     MM = set()
-    with open(f'project_data/{filename}') as file:
+    with open(f'resources/{filename}') as file:
         content = file.readlines()
         for line in content:
             line = line.split('\t')

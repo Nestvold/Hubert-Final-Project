@@ -14,11 +14,9 @@ env = Environment(name="Level 4", grid=grid, enemies=enemies, project_path='Leve
 sarsa = SARSA(environment=env, epsilon=0.0, gamma=1.0)
 sarsa.train(num_episodes=100_000)
 
-for i in range(10):
+trajectory, reward, time = sarsa.get_optimal_trajectory()
 
-    trajectory, reward, time = sarsa.get_optimal_trajectory()
+print(f'Energy cost: {reward}')
+print(f'Total time: {time}')
 
-    print(f'Energy cost: {reward}')
-    print(f'Total time: {time}')
-
-    env.create_gif(agent=trajectory)
+# env.create_gif(agent=trajectory)

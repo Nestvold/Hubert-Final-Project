@@ -44,7 +44,7 @@ class Environment_6(Env, ABC):
         self.grid_x = GridValues(grid[0])
 
         # Start state
-        self.scan_surroundings(-1)
+        self.scan_surroundings()
 
     def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[ndarray, float, bool]:
         if action not in self.action_mapping:
@@ -120,7 +120,7 @@ class Environment_6(Env, ABC):
                 else:
                     area[y, x] = -1
 
-        self.surroundings = area.flatten()
+        self.surroundings = area
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -136,7 +136,7 @@ class Environment_6(Env, ABC):
 
     def reset(self) -> ndarray:
         self.y, self.x = 46, 1
-        self.scan_surroundings(-1)
+        self.scan_surroundings()
         return self.surroundings, {}
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):

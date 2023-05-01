@@ -164,7 +164,7 @@ class Environment_3(BaseEnv):
                 spine.set_visible(True)
                 spine.set_linewidth(1)
 
-            savefig(f'gif_1/img_{time_step}.png')
+            savefig(f'gif/img_{time_step}.png')
             close()
 
         y_values, x_values, MM_value, rewards, t_values = zip(*agent)
@@ -175,7 +175,7 @@ class Environment_3(BaseEnv):
         frames = []
 
         for t in tqdm(range(len(x_values)), desc='[CREATING  GIF ]'):
-            image = imread(f'gif_1/img_{t}.png')
+            image = imread(f'gif/img_{t}.png')
             frames.append(image)
 
         mimsave(uri=f'Levels/gifs/{self.name}_{r}.gif',
@@ -183,8 +183,8 @@ class Environment_3(BaseEnv):
                 fps=8
                 )
 
-        #Delete plots
-        folder_path = "gif_1"
+        # Delete plots
+        folder_path = "gif"
 
         # Get all the file names in the folder
         files = os.listdir(folder_path)

@@ -7,8 +7,11 @@ import torch
 
 def main():
     # Loading grid from file and environment
+    fans = {'min': 0, 'max': 10, 'positions': set()}
+    MM = {'min': 0, 'max': 10, 'positions': set()}
+
     grid = read_tsv_file('../resources/map_4.dat', enemies={}, start=(46, 1), end=(1, 46))
-    env = Environment(name="Level 5", grid=grid, project_path='Levels')
+    env = Environment(name="Level 5", grid=grid, MM=MM, fans=fans, project_path='Levels')
     env = FrameStack(env=env, num_stack=3)
 
     # Setting device

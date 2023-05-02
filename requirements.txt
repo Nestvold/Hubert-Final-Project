@@ -2,3 +2,4 @@ matplotlib~=3.6.3
 seaborn~=0.12.2
 numpy~=1.24.1
 imageio~=2.27.0
+torch~=1.12.1

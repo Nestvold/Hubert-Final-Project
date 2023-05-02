@@ -51,7 +51,7 @@ class Agent:
             rewards.append(reward)
             next_states.append(next_state)
             dones.append(done)
-
+        print(states)
         states = torch.FloatTensor(states).to(self.device)
         actions = torch.LongTensor(actions).unsqueeze(1).to(self.device)
         rewards = torch.FloatTensor(rewards).unsqueeze(1).to(self.device)

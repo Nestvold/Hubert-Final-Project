@@ -16,17 +16,19 @@ import os
 
 
 class Environment_6(Env, ABC):
-    def __init__(self, name: str, grid: ndarray, project_path: str = ''):
+    def __init__(self, name: str, grid: ndarray, MM: dict, fans: dict, project_path: str = ''):
         self.name = name
         self.project_path = project_path
+        self.MM = MM
+        self.FANS = fans
 
         # Gym
         self.action_space = Discrete(3)  # 0 = go left, 1 = jump, 2 = go right
 
         # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
         self.observation_space = Box(
-            low=array([-1] * (9 * 9 + 1)),  # Low Bound
-            high=array([3] * (9 * 9 + 1)),  # High Bound
+            low=array([-1] * (9 * 9)),  # Low Bound
+            high=array([5] * (9 * 9)),  # High Bound
             dtype=int32  # Type: Integer
         )
 
@@ -47,6 +49,7 @@ class Environment_6(Env, ABC):
         self.scan_surroundings()
 
     def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[ndarray, float, bool]:
+
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
 
@@ -116,7 +119,12 @@ class Environment_6(Env, ABC):
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
                 if self.on_grid(y_v, x_v):
-                    area[y, x] = self.grid[y_v, x_v]
+                    if (y_v, x_v) in self.MM['positions']:
+                        area[y, x] = 4
+                    elif (y_v, x_v) in self.FANS['positions']:
+                        area[y, x] = 5
+                    else:
+                        area[y, x] = self.grid[y_v, x_v]
                 else:
                     area[y, x] = -1
 

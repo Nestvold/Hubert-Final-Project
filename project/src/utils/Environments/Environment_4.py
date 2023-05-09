@@ -5,7 +5,7 @@ from collections import defaultdict
 from imageio.v2 import imread
 from imageio import mimsave
 from seaborn import heatmap
-from .utils import BaseEnv
+from .extra import BaseEnv
 from tqdm import tqdm
 import os
 

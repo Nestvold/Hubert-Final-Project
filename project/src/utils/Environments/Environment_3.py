@@ -1,5 +1,5 @@
 # Utils module
-from .utils import BaseEnv
+from .extra import BaseEnv
 
 # Other modules
 from matplotlib.pyplot import title, savefig, figure, close

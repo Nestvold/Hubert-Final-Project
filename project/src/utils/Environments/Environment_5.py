@@ -1,5 +1,5 @@
 # Utils module
-from .utils import GridValues
+from .extra import GridValues
 
 # Other modules
 from numpy import array, ndarray, zeros, int32, concatenate, where

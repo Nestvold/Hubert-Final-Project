@@ -1,5 +1,5 @@
 # Utils module
-from .utils import BaseEnv
+from .extra import BaseEnv
 
 # Other modules
 from numpy import array, zeros, ndarray

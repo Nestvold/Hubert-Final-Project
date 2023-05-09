@@ -1,14 +1,14 @@
 # Utils module
-from .utils import GridValues
+from project.src.utils import GridValues
 
 # Other modules
-from numpy import array, ndarray, zeros, int32, concatenate, where
 from matplotlib.pyplot import title, savefig, figure, close
+from numpy import array, ndarray, zeros, int32
+from random import random, choice, randint
 from gym.spaces import Discrete, Box
 from imageio.v2 import imread
 from imageio import mimsave
 from seaborn import heatmap
-from random import random
 from tqdm import tqdm
 from abc import ABC
 from gym import Env
@@ -16,24 +16,29 @@ import os
 
 
 class Environment_6(Env, ABC):
-    def __init__(self, name: str, grid: ndarray, MM: dict, fans: dict, project_path: str = ''):
+    def __init__(self, name: str, grid: ndarray, MM: dict, fans: dict, pMM: float = 1.0, start_coords: tuple = (46, 1),
+                 project_path: str = 'project/src/level_6.py'):
         self.name = name
         self.project_path = project_path
+
         self.MM = MM
-        self.FANS = fans
+        self.pMM = pMM
+        self.fans = fans
 
         # Gym
         self.action_space = Discrete(3)  # 0 = go left, 1 = jump, 2 = go right
 
         # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
         self.observation_space = Box(
-            low=array([-1] * (9 * 9)),  # Low Bound
-            high=array([5] * (9 * 9)),  # High Bound
+            low=array([-1] * 81),  # Low Bound
+            high=array([5] * 81),  # High Bound
             dtype=int32  # Type: Integer
         )
 
         # State representation
-        self.y, self.x = 46, 1
+        self.start_coords = start_coords
+        self.y, self.x = self.start_coords
+        self.best_y = self.y
         self.surroundings = zeros(shape=9 * 9)
 
         # Action mapping
@@ -47,71 +52,137 @@ class Environment_6(Env, ABC):
 
         # Start state
         self.scan_surroundings()
+        self.prev_states = set([hash(str(list(self.surroundings)))])
 
-    def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[ndarray, float, bool]:
+    def __str__(self):
+        return f'Name: {self.name}, project path: {self.project_path}, MM: {self.MM}, fans: {self.fans}, start pos: {self.start_coords} == {self.y, self.x}, '
 
+    def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[
+        ndarray, float, bool]:
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
-
+        reward = -1 if action in [0, 2] else -2
         done = False
-        reward = -1.0
+        energy = 1.0
+
+        old_y, old_x = self.y, self.x
+
         dy, dx = self.action_mapping[action]
 
         if action in [0, 2]:
             if self.can_go(self.y, self.x + dx):
                 self.x += dx
-                if track: trajectory.append((self.y, self.x, reward, t))
+                if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, reward, t))
+                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
                     if self.can_go(self.y, self.x + dx):
                         self.x += dx
-                        if track: trajectory.append((self.y, self.x, reward, t))
+                        if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
                         if not self.on_solid_grounds():
                             self.y += 1
-                            if track: trajectory.append((self.y, self.x, reward, t))
+                            if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
             else:
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, reward, t))
+                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
                     if not self.on_solid_grounds():
                         self.y += 1
-                    if track: trajectory.append((self.y, self.x, reward, t))
+                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
         else:
-            reward -= 4
+            energy += 4
             if self.on_solid_grounds():
                 if self.can_go(self.y + dy, self.x):
                     self.y += dy
-                    if track: trajectory.append((self.y, self.x, reward, t))
+                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
                     if self.can_go(self.y + dy, self.x):
                         self.y += dy
-                        if track: trajectory.append((self.y, self.x, reward, t))
+                        if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
             elif random() < 1 / 3 and self.can_go(self.y + dy, self.x):
-                reward += 2
+                energy -= 2
                 self.y += dy
-                if track: trajectory.append((self.y, self.x, reward, t))
+                if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
             else:
                 self.y += 1
-                if track: trajectory.append((self.y, self.x, reward, t))
+                if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, reward, t))
+                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
-        if self.in_end_state():
-            done = True
-            reward = 0
+        # Move enemies
+        self.update_enemies((old_y, old_x))
+        if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+
+        # Check if he is encountered by an MM
+        if self.busted():
+            self.y, self.x = self.start_coords
+            if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+            return self.surroundings, reward, done, False, {'energy': energy}
 
         self.scan_surroundings()
+        reward, done = self.calculate_reward(old_y, old_x)
 
-        return self.surroundings, reward, done, False, {}
+        return self.surroundings, reward, done, False, {'energy': energy}
+
+    def calculate_reward(self, prev_y, prev_x):
+        reward = 0
+        done = False
+
+        # Penalize wasted actions
+        if self.y == prev_y and self.x == prev_x:
+            reward -= 1.0
+
+        # Encourage height
+        if self.y < self.best_y:
+            self.best_y = self.y
+            reward += 1.0
+
+        # Encourage exploration
+        if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
+            self.prev_states.add(surroundings)
+            reward += 0.2
+
+        # Encourage getting to goal
+        if self.in_end_state():
+            done = True
+            reward += 1.0
+
+        reward += self.seen()
+        return reward, done
+
+    def busted(self):
+        return [self.y, self.x] in self.MM and random() < self.pMM
+
+    def seen(self):
+        reward = 0
+        for fan in self.fans:
+            if [self.y, self.x] == fan:
+                reward -= randint(20, 100)
+        return reward
+
+    def can_move_enemy(self, entity, move):
+        return self.grid[entity[0], entity[1] + move] != 2 and self.grid[entity[0] - 1, entity[1] + move] != 1
+
+    def update_enemies(self, pre_pos):
+        # Update MM randomly
+        for MM in self.MM:
+            move = choice([-1, 1])
+            if self.can_move_enemy(MM, move):
+                MM[1] += move
+
+        # Update fans based on fan vision
+        for fan in self.fans:
+            move = 1 if fan[0] == pre_pos[0] and fan[1] < pre_pos[1] else choice([-1, 1])
+            if self.can_move_enemy(fan, move):
+                fan[1] += move
 
     def scan_surroundings(self) -> None:
         area = zeros(shape=(9, 9))
@@ -119,9 +190,9 @@ class Environment_6(Env, ABC):
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
                 if self.on_grid(y_v, x_v):
-                    if (y_v, x_v) in self.MM['positions']:
+                    if [y_v, x_v] in self.MM:
                         area[y, x] = 4
-                    elif (y_v, x_v) in self.FANS['positions']:
+                    elif [y_v, x_v] in self.fans:
                         area[y, x] = 5
                     else:
                         area[y, x] = self.grid[y_v, x_v]
@@ -140,10 +211,11 @@ class Environment_6(Env, ABC):
         return self.grid[self.y + 1, self.x] in self.solids
 
     def in_end_state(self) -> bool:
-        return self.y == 1 and self.x == 46
+        return self.y == self.start_coords[1] and self.x == self.start_coords[0]
 
     def reset(self) -> ndarray:
-        self.y, self.x = 46, 1
+        self.y, self.x = self.start_coords
+        self.best_y = self.y
         self.scan_surroundings()
         return self.surroundings, {}
 

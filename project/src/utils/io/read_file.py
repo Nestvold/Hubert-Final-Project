@@ -11,7 +11,7 @@ def read_tsv_file(filename: str, enemies: set, start: tuple, end: tuple) -> ndar
     :return: An array representing the values from file
     """
 
-    with open(f'resources/{filename}') as file:
+    with open(f'project/resources/{filename}') as file:
         content = file.readlines()
         y, x = len(content), len(content[0].split('\t'))
         grid = zeros((y, x), dtype=float)

@@ -17,7 +17,7 @@ import os
 
 
 class Environment_5(Env, ABC):
-    def __init__(self, name: str, grid: ndarray, project_path: str = ''):
+    def __init__(self, name: str, n_actions, grid: ndarray, project_path: str = ''):
         self.name = name
         self.project_path = project_path
 
@@ -33,6 +33,7 @@ class Environment_5(Env, ABC):
 
         # State representation
         self.y, self.x = 46, 1
+        self.prev_actions = deque(maxlen=n_actions)
         self.surroundings = zeros(shape=9 * 9)
 
         # Action mapping
@@ -109,6 +110,7 @@ class Environment_5(Env, ABC):
             reward = 0
 
         self.scan_surroundings(action)
+        self.prev_actions.append(action)
 
         return self.surroundings, reward, done, False, {}
 
@@ -121,8 +123,8 @@ class Environment_5(Env, ABC):
                     area[y, x] = self.grid[y_v, x_v]
                 else:
                     area[y, x] = -1
-        area[4, 4] = action
-        self.surroundings = area.flatten()
+
+        self.surroundings = concatenate((self.prev_actions, area.flatten()))
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -138,6 +140,7 @@ class Environment_5(Env, ABC):
 
     def reset(self) -> ndarray:
         self.y, self.x = 46, 1
+        self.prev_actions.clear()
         self.scan_surroundings(-1)
         return self.surroundings, {}
 

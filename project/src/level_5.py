@@ -5,9 +5,9 @@ from gym.wrappers import FrameStack, LazyFrames
 
 grid = read_tsv_file('../resources/map_4.dat', enemies={}, start=(46, 1), end=(1, 46))
 
-env = Environment(name="Level 5", grid=grid, project_path='Levels')
+env = Environment(name="Level 5", n_actions=3, grid=grid, project_path='Levels')
 # env.plot(color_bar=False, save=True)
-env = FrameStack(env=env, num_stack=3)
+# env = FrameStack(env=env, num_stack=3)
 
 sarsa = SARSA(environment=env, epsilon=0.2, gamma=0.999)
 sarsa.train(num_episodes=1_000)

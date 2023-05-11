@@ -1,5 +1,5 @@
 # Utils module
-from project.src.utils import GridValues
+from .extra import GridValues
 
 # Other modules
 from matplotlib.pyplot import title, savefig, figure, close
@@ -128,17 +128,20 @@ class Environment_6(Env, ABC):
             return self.surroundings, reward, done, False, {'energy': energy}
 
         self.scan_surroundings()
-        reward, done = self.calculate_reward(old_y, old_x)
+        reward, done = self.calculate_reward(old_y, old_x, action)
 
         return self.surroundings, reward, done, False, {'energy': energy}
 
-    def calculate_reward(self, prev_y, prev_x):
+    def calculate_reward(self, prev_y, prev_x, action):
         reward = 0
         done = False
 
         # Penalize wasted actions
         if self.y == prev_y and self.x == prev_x:
             reward -= 1.0
+
+        if self.y == prev_y:
+            reward -= 0.2
 
         # Encourage height
         if self.y < self.best_y:
@@ -155,6 +158,7 @@ class Environment_6(Env, ABC):
             done = True
             reward += 1.0
 
+        # Penalize getting seen by fans
         reward += self.seen()
         return reward, done
 
@@ -196,10 +200,8 @@ class Environment_6(Env, ABC):
                         area[y, x] = 5
                     else:
                         area[y, x] = self.grid[y_v, x_v]
-                else:
-                    area[y, x] = -1
 
-        self.surroundings = area
+        self.surroundings = ((area - 0) / (5 - 0))
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -211,7 +213,7 @@ class Environment_6(Env, ABC):
         return self.grid[self.y + 1, self.x] in self.solids
 
     def in_end_state(self) -> bool:
-        return self.y == self.start_coords[1] and self.x == self.start_coords[0]
+        return self.y == 1
 
     def reset(self) -> ndarray:
         self.y, self.x = self.start_coords

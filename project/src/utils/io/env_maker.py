@@ -34,6 +34,7 @@ class ENVIRONMENTS:
 
             env = Environment(name=env_name, grid=grid, MM=MM, fans=fans, start_coords=(grid.shape[0] - 2, 1))
             envs.append(env)
+
         return envs
 
     def read_enemy(self, files: list):

@@ -41,7 +41,7 @@ def parse_args():
     # Algorithm specific arguments
     parser.add_argument("--env-id", type=str, default="Hubert",
         help="the id of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=100_000_000,
+    parser.add_argument("--total-timesteps", type=int, default=1_000_000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=2.5e-4,
         help="the learning rate of the optimizer")
@@ -219,12 +219,16 @@ if __name__ == "__main__":
             rewards[step] = torch.tensor(reward).to(device).view(-1)
             next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(done).to(device)
 
-            for item in info:
+            for i, item in enumerate(info):
                 if "episode" in item.keys():
                     # print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
                     writer.add_scalar("charts/episodic_return", item["episode"]["r"], global_step)
                     writer.add_scalar("charts/episodic_length", item["episode"]["l"], global_step)
-                    break
+
+                if next_done[i]:
+                    writer.add_scalar("charts/episodic_peak", item["peak"], global_step)
+                    writer.add_scalar("charts/energy_consumption", item["energy"], global_step)
+
 
         # bootstrap value if not done
         with torch.no_grad():

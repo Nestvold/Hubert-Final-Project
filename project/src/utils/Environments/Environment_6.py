@@ -37,6 +37,7 @@ class Environment_6(Env, ABC):
         self.y, self.x = self.start_coords
         self.best_y = self.y
         self.energy = 150
+        self.energy_cons = 0
         self.surroundings = zeros(shape=9 * 9)
 
         # Action mapping
@@ -50,6 +51,7 @@ class Environment_6(Env, ABC):
 
         # Start state
         self.scan_surroundings()
+        self.peak = self.best_y / (self.grid.shape[0] - 3)
         self.prev_states = set([hash(str(list(self.surroundings)))])
 
     def __str__(self):
@@ -57,9 +59,11 @@ class Environment_6(Env, ABC):
 
     def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[
         ndarray, float, bool]:
+
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
-        reward = -1 if action in [0, 2] else -2
+
+        reward = 0 #  -1 if action in [0, 2] else -2
         done = False
         energy = 1.0
 
@@ -116,6 +120,7 @@ class Environment_6(Env, ABC):
                     if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
         self.energy -= energy
+        self.energy_cons += energy
 
         # Move enemies
         self.update_enemies((old_y, old_x))
@@ -124,34 +129,31 @@ class Environment_6(Env, ABC):
         # Check if he is encountered by an MM
         if self.busted():
             self.y, self.x = self.start_coords
+            self.scan_surroundings()
             if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
-            return self.surroundings, reward, done, {'energy': energy}
+            return self.surroundings, reward, done, {'energy': energy, 'peak': self.best_y}
+
+        reward, done = self.calculate_reward(reward, done)
 
         self.scan_surroundings()
-        reward, done = self.calculate_reward(old_y, old_x, action)
 
-        return self.surroundings, reward, done, {'energy': energy}
+        return self.surroundings, reward, done, {'energy': self.energy_cons, 'peak': self.peak}
 
-    def calculate_reward(self, prev_y, prev_x, action):
-        reward = 0
-        done = False
-
-        # Penalize wasted actions
-        if self.y == prev_y and self.x == prev_x:
-            reward -= 0.1
+    def calculate_reward(self, reward, done):
 
         # Encourage height
         if self.y < self.best_y:
             change = self.y - self.best_y
+            self.energy += change * 15
             self.best_y = self.y
-            reward += change
-
-            self.energy += change * 15  # TODO: Usikker på denne
+            self.peak = self.best_y / (self.grid.shape[0] - 3)
+            reward += 1 - self.peak
 
         # Encourage exploration
         if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
             self.prev_states.add(surroundings)
-            reward += 0.2
+            reward += 0.1
+
 
         # Encourage getting to goal
         if self.in_end_state():
@@ -159,7 +161,7 @@ class Environment_6(Env, ABC):
             reward += 1.0
 
         # Max capacity
-        if self.energy <= 0:
+        if self.energy < 0:
             done = True
 
         # Penalize getting seen by fans
@@ -174,6 +176,7 @@ class Environment_6(Env, ABC):
         for fan in self.fans:
             if [self.y, self.x] == fan:
                 reward -= randint(20, 100)
+        self.energy_cons += abs(reward)
         return reward
 
     def can_move_enemy(self, entity, move):
@@ -222,8 +225,12 @@ class Environment_6(Env, ABC):
     def reset(self, seed: Optional[int] = None) -> tuple[ndarray, dict]:
         self.y, self.x = self.start_coords
         self.scan_surroundings()
+        self.prev_states = set([hash(str(list(self.surroundings)))])
         self.best_y = self.y
+        self.peak = self.best_y / (self.grid.shape[0] - 3)
+        self.energy_cons = 0
         self.energy = 150
+
         return self.surroundings
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):

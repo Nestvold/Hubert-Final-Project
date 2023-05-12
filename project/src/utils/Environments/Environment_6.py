@@ -63,7 +63,7 @@ class Environment_6(Env, ABC):
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
 
-        reward = 0 #  -1 if action in [0, 2] else -2
+        reward = 0
         done = False
         energy = 1.0
 
@@ -131,29 +131,31 @@ class Environment_6(Env, ABC):
             self.y, self.x = self.start_coords
             self.scan_surroundings()
             if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
-            return self.surroundings, reward, done, {'energy': energy, 'peak': self.best_y}
+            return self.surroundings, reward, done, {'energy': energy, 'peak': self.peak}
 
-        reward, done = self.calculate_reward(reward, done)
+        reward, done = self.calculate_reward(old_y, old_x, reward, done)
 
         self.scan_surroundings()
 
         return self.surroundings, reward, done, {'energy': self.energy_cons, 'peak': self.peak}
 
-    def calculate_reward(self, reward, done):
+    def calculate_reward(self, prev_y, prev_x, reward, done):
 
         # Encourage height
         if self.y < self.best_y:
-            change = self.y - self.best_y
+            change = self.best_y - self.y
             self.energy += change * 15
             self.best_y = self.y
             self.peak = self.best_y / (self.grid.shape[0] - 3)
-            reward += 1 - self.peak
+            reward += 1 + (1 - self.peak)
 
         # Encourage exploration
         if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
             self.prev_states.add(surroundings)
             reward += 0.1
 
+        if self.x == prev_x and self.y > prev_y:
+            reward -= 0.2
 
         # Encourage getting to goal
         if self.in_end_state():
@@ -163,6 +165,7 @@ class Environment_6(Env, ABC):
         # Max capacity
         if self.energy < 0:
             done = True
+            reward -= 1
 
         # Penalize getting seen by fans
         reward += self.seen()

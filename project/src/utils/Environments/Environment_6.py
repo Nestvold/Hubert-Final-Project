@@ -131,7 +131,7 @@ class Environment_6(Env, ABC):
             self.y, self.x = self.start_coords
             self.scan_surroundings()
             if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
-            return self.surroundings, reward, done, {'energy': energy, 'peak': self.peak}
+            return self.surroundings, reward, done, {'energy': self.energy_cons, 'peak': self.peak}
 
         reward, done = self.calculate_reward(old_y, old_x, reward, done)
 
@@ -147,25 +147,25 @@ class Environment_6(Env, ABC):
             self.energy += change * 15
             self.best_y = self.y
             self.peak = self.best_y / (self.grid.shape[0] - 3)
-            reward += 1 + (1 - self.peak)
+            reward += (self.grid.shape[0] - 3) - self.best_y # 2 + (2 - self.peak)
 
         # Encourage exploration
         if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
             self.prev_states.add(surroundings)
-            reward += 0.1
+            reward += 0.5
 
-        if self.x == prev_x and self.y > prev_y:
-            reward -= 0.2
+        if self.x == prev_x and self.y >= prev_y:
+            reward -= 0.5
 
         # Encourage getting to goal
         if self.in_end_state():
             done = True
-            reward += 1.0
+            reward += 5.0
 
         # Max capacity
         if self.energy < 0:
             done = True
-            reward -= 1
+            reward -= 2
 
         # Penalize getting seen by fans
         reward += self.seen()

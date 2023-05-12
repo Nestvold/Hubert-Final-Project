@@ -4,7 +4,7 @@ from project.src.utils.Environments import Environment_6 as Environment
 # Other modules
 from numpy import ndarray, zeros, array
 from os import listdir, path
-
+import re
 
 class ENVIRONMENTS:
     def __init__(self, folder_path: str) -> None:
@@ -59,11 +59,12 @@ class ENVIRONMENTS:
 
         with open(f'{self.folder_path}/{file_path}', mode='r') as file:
             content = file.readlines()
-            y, x = len(content), len(content[0].split('\t'))
+
+            y, x = len(content), len(re.split(r'\t| {2,}', content[0]))
             grid = zeros((y, x), dtype=float)
 
             for i, line in enumerate(content):
-                line = line.split('\t')
+                line = re.split(r'\t| {2,}', line)
                 values = array([float(x) for x in line])
                 grid[i] = values
 

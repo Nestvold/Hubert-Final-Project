@@ -4,7 +4,6 @@ numpy~=1.23.5
 imageio~=2.25.1
 torch~=2.0.0
 tensorboard~=2.13.0
-
 tqdm~=4.64.1
 gym~=0.21.0
 wandb~=0.13.10

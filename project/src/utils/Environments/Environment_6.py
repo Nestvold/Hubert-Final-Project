@@ -3,12 +3,13 @@ from .extra import GridValues
 
 # Other modules
 from matplotlib.pyplot import title, savefig, figure, close
-from numpy import array, ndarray, zeros, int32
+from numpy import array, ndarray, zeros, float32
 from random import random, choice, randint
 from gym.spaces import Discrete, Box
 from imageio.v2 import imread
 from imageio import mimsave
 from seaborn import heatmap
+from typing import Optional
 from tqdm import tqdm
 from abc import ABC
 from gym import Env
@@ -29,16 +30,13 @@ class Environment_6(Env, ABC):
         self.action_space = Discrete(3)  # 0 = go left, 1 = jump, 2 = go right
 
         # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
-        self.observation_space = Box(
-            low=array([-1] * 81),  # Low Bound
-            high=array([5] * 81),  # High Bound
-            dtype=int32  # Type: Integer
-        )
+        self.observation_space = Box(low=-1, high=5, shape=(9, 9), dtype=float32)
 
         # State representation
         self.start_coords = start_coords
         self.y, self.x = self.start_coords
         self.best_y = self.y
+        self.energy = 150
         self.surroundings = zeros(shape=9 * 9)
 
         # Action mapping
@@ -117,6 +115,8 @@ class Environment_6(Env, ABC):
                     self.y += 1
                     if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
+        self.energy -= energy
+
         # Move enemies
         self.update_enemies((old_y, old_x))
         if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
@@ -125,12 +125,12 @@ class Environment_6(Env, ABC):
         if self.busted():
             self.y, self.x = self.start_coords
             if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
-            return self.surroundings, reward, done, False, {'energy': energy}
+            return self.surroundings, reward, done, {'energy': energy}
 
         self.scan_surroundings()
         reward, done = self.calculate_reward(old_y, old_x, action)
 
-        return self.surroundings, reward, done, False, {'energy': energy}
+        return self.surroundings, reward, done, {'energy': energy}
 
     def calculate_reward(self, prev_y, prev_x, action):
         reward = 0
@@ -138,15 +138,15 @@ class Environment_6(Env, ABC):
 
         # Penalize wasted actions
         if self.y == prev_y and self.x == prev_x:
-            reward -= 1.0
-
-        if self.y == prev_y:
-            reward -= 0.2
+            reward -= 0.1
 
         # Encourage height
         if self.y < self.best_y:
+            change = self.y - self.best_y
             self.best_y = self.y
-            reward += 1.0
+            reward += change
+
+            self.energy += change * 15  # TODO: Usikker på denne
 
         # Encourage exploration
         if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
@@ -157,6 +157,10 @@ class Environment_6(Env, ABC):
         if self.in_end_state():
             done = True
             reward += 1.0
+
+        # Max capacity
+        if self.energy <= 0:
+            done = True
 
         # Penalize getting seen by fans
         reward += self.seen()
@@ -201,7 +205,7 @@ class Environment_6(Env, ABC):
                     else:
                         area[y, x] = self.grid[y_v, x_v]
 
-        self.surroundings = ((area - 0) / (5 - 0))
+        self.surroundings = area
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -215,11 +219,12 @@ class Environment_6(Env, ABC):
     def in_end_state(self) -> bool:
         return self.y == 1
 
-    def reset(self) -> ndarray:
+    def reset(self, seed: Optional[int] = None) -> tuple[ndarray, dict]:
         self.y, self.x = self.start_coords
-        self.best_y = self.y
         self.scan_surroundings()
-        return self.surroundings, {}
+        self.best_y = self.y
+        self.energy = 150
+        return self.surroundings
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']

@@ -41,8 +41,8 @@ class ENVIRONMENTS:
         MM, fans = [], []
 
         for file in files:
-            with open(f'{self.folder_path}/{file}', mode='r') as file:
-                enemies = [[int(x) for x in line.split() if int(x)] for line in file if line.split()]
+            with open(f'{self.folder_path}/{file}', mode='r') as f:
+                enemies = [[int(x) for x in line.split() if int(x)] for line in f if line.split()]
                 for enemy in enemies:
                     if enemy[-1] == 1:
                         MM.append([x - 1 for x in enemy[:2]])
@@ -53,8 +53,7 @@ class ENVIRONMENTS:
     def read_environment(self, file_path: str) -> ndarray:
         """
         Reads a TSV file and puts the value in an array to represent the environment.
-        :param enemies:
-        :param filename:
+        :param file_path:
         :return: An array representing the values from file
         """
 

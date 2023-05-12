@@ -1,7 +1,7 @@
 from numpy import ndarray, array, zeros
 
 
-def read_tsv_file(filename: str, enemies: set, start: tuple, end: tuple) -> ndarray:
+def read_tsv_file(filename: str, enemies: set, start: tuple = None, end: tuple = None) -> ndarray:
     """
     Reads a TSV file and puts the value in an array to represent the track/hill.
     :param end:
@@ -11,7 +11,7 @@ def read_tsv_file(filename: str, enemies: set, start: tuple, end: tuple) -> ndar
     :return: An array representing the values from file
     """
 
-    with open(f'project/resources/{filename}') as file:
+    with open(f'resources/{filename}') as file:
         content = file.readlines()
         y, x = len(content), len(content[0].split('\t'))
         grid = zeros((y, x), dtype=float)
@@ -25,8 +25,10 @@ def read_tsv_file(filename: str, enemies: set, start: tuple, end: tuple) -> ndar
         y, x = enemy
         grid[y, x] = 4
 
-    grid[start] = 0
-    grid[end] = 0
+    if start is not None:
+        grid[start] = 0
+    if end is not None:
+        grid[end] = 0
 
     return grid
 

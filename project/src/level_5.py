@@ -1,15 +1,16 @@
 from project.src.utils.Environments import Environment_5 as Environment
+# from project.src.utils import SARSA_N_STEP as SARSA
 from project.src.utils import SARSA, read_tsv_file
 
 from gym.wrappers import FrameStack, LazyFrames
 
-grid = read_tsv_file('../resources/map_4.dat', enemies={}, start=(46, 1), end=(1, 46))
+grid = read_tsv_file('map_4.dat', enemies={})
 
-env = Environment(name="Level 5", n_actions=3, grid=grid, project_path='Levels')
+env = Environment(name="Level 5", n_actions=10, grid=grid, project_path='Levels')
 # env.plot(color_bar=False, save=True)
 # env = FrameStack(env=env, num_stack=3)
 
-sarsa = SARSA(environment=env, epsilon=0.2, gamma=0.999)
+sarsa = SARSA(environment=env, epsilon=0.2)
 sarsa.train(num_episodes=1_000)
 
 

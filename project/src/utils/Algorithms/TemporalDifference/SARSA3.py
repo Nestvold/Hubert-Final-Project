@@ -6,10 +6,10 @@ from collections import deque
 from tqdm import tqdm
 
 
-class SARSA3(SARSA):
-    def __init__(self, environment, epsilon: float = 0.8, alpha: float = 0.1, gamma: float = 0.999):
+class SARSA_N_STEP(SARSA):
+    def __init__(self, environment, n_steps, epsilon: float = 0.8, alpha: float = 0.1, gamma: float = 0.999):
         super().__init__(environment, epsilon, alpha, gamma)
-        self.n = 3
+        self.n = n_steps
         self.state_action_buffer = deque(maxlen=self.n)
         self.reward_buffer = deque(maxlen=self.n)
 

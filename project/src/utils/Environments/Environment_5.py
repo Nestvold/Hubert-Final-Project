@@ -2,8 +2,8 @@
 from .extra import GridValues
 
 # Other modules
-from numpy import array, ndarray, zeros, int32, concatenate, where
-from matplotlib.pyplot import title, savefig, figure, close
+from matplotlib.pyplot import title, savefig, figure, close, show
+from numpy import float32, ndarray, zeros, concatenate
 from gym.spaces import Discrete, Box
 from imageio.v2 import imread
 from collections import deque
@@ -24,17 +24,16 @@ class Environment_5(Env, ABC):
         # Gym
         self.action_space = Discrete(3)  # 0 = go left, 1 = jump, 2 = go right
 
-        # y, x, 9 x 9 grid -> 0: Goal/Start, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
-        self.observation_space = Box(
-            low=array([-1] * 81),  # Low Bound
-            high=array([3] * 81),  # High Bound
-            dtype=int32  # Type: Integer
-        )
+        # y, x, 9 x 9 grid -> 0: Goal/Start, 1: Air, 2: Solid, 3: Semisolid
+        self.observation_space = Box(low=-1, high=4, shape=(9, 9), dtype=float32)
 
         # State representation
         self.y, self.x = 46, 1
-        self.prev_actions = deque(maxlen=n_actions)
         self.surroundings = zeros(shape=9 * 9)
+
+        # Extra
+        self.visited_states = set([(self.y, self.x)])
+        self.prev_actions = deque(maxlen=n_actions)
 
         # Action mapping
         self.action_mapping = {0: (0, -1), 1: (-1, 0), 2: (0, 1)}
@@ -109,8 +108,12 @@ class Environment_5(Env, ABC):
             done = True
             reward = 0
 
+        if (self.y, self.x) in self.visited_states:
+            reward -= 1
+
         self.scan_surroundings(action)
         self.prev_actions.append(action)
+        self.visited_states.add((self.y, self.x))
 
         return self.surroundings, reward, done, False, {}
 
@@ -120,11 +123,14 @@ class Environment_5(Env, ABC):
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
             for x, x_v in enumerate(range(self.x - 4, self.x + 5)):
                 if self.on_grid(y_v, x_v):
-                    area[y, x] = self.grid[y_v, x_v]
+                    if (y_v, x_v) in self.visited_states and self.grid[y_v, x_v] == 1.0:
+                        area[y, x] = 0
+                    else:
+                        area[y, x] = self.grid[y_v, x_v]
                 else:
                     area[y, x] = -1
 
-        self.surroundings = concatenate((self.prev_actions, area.flatten()))
+        self.surroundings = area.flatten()  # concatenate((self.prev_actions, area.flatten()))
 
     def can_go(self, y: int, x: int) -> bool:
         return self.grid[y, x] != 2.0
@@ -143,6 +149,34 @@ class Environment_5(Env, ABC):
         self.prev_actions.clear()
         self.scan_surroundings(-1)
         return self.surroundings, {}
+
+    def plot(self, agent: dict = None, color_bar: bool = True, save: bool = False):
+        """
+        Plot a heatmap of the environment with optional agent routes.
+        :param agent: A dictionary containing the agent names as keys and their corresponding routes as values.
+        :param color_bar: A boolean indicating whether to display a color bar for the heatmap.
+        :param save: A boolean indicating whether to save the plots to a file.
+        :returns: None
+        """
+        if agent is not None:  # 2a7fff
+            #              Green      White      Black      Blue       Pink       Orange
+            color_map = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
+        else:
+            color_map = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979']
+
+        figure(figsize=(10, 10))
+        map = heatmap(data=self.grid, cmap=color_map, cbar=color_bar)
+
+        for _, spine in map.spines.items():
+            spine.set_visible(True)
+            spine.set_linewidth(1)
+
+        title(self.name.capitalize(), size=30)
+
+        if save:
+            savefig(f'{self.project_path}/images/{self.name}.png')
+        show()
+
 
     def create_gif(self, agent: list[list, list], color_bar: bool = False):
         colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']

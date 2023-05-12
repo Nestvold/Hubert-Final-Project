@@ -21,7 +21,6 @@ class SARSA:
         # Repeat for each episode
         for episode in tqdm(range(num_episodes), desc='Episode'):
             # Initialize state
-
             if self.env.name == 'Level 5':
                 state, _ = self.env.reset()
                 state = hash(str(list(state)))
@@ -31,10 +30,9 @@ class SARSA:
             # Choose A from S using policy derived from Q (e.g., epsilon-greedy)
             action = self.epsilon_greedy(state)
 
-            trajectory = [(self.env.y, self.env.x, 0, 0)]
-
             # Repeat for each step of the episode
             while True:
+                # print(self.env.y, self.env.x, action)
                 # Take action A, observe R and S'
                 next_state, reward, done, *_ = self.env.step(action)
 
@@ -55,14 +53,14 @@ class SARSA:
                     break
 
             if self.epsilon != 0:
-                self._decaying_epsilon(), self._decaying_lr()
+                self._decaying_epsilon()  # , self._decaying_lr()
 
     def epsilon_greedy(self, state):
         if uniform() < self.epsilon:
             return choice(self.actions)
         return argmax(self.Q[state])
 
-    def _decaying_epsilon(self, value: float = 0.9999):
+    def _decaying_epsilon(self, value: float = 0.999):
         if self.epsilon <= self.epsilon_min:
             self.epsilon = self.epsilon_min
         else:

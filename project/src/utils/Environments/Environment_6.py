@@ -25,7 +25,7 @@ import os
 
 
 class Environment_6(Env, ABC):
-    def __init__(self, name: str, grid: ndarray, MM: dict, fans: dict, pMM: float = 1.0, start_coords: tuple = (46, 1),
+    def __init__(self, name: str, grid: ndarray, MM: dict = None, fans: dict = None, pMM: float = 1.0, start_coords: tuple = (46, 1),
                  project_path: str = 'project/src/level_6.py'):
         self.name = name
         self.project_path = project_path
@@ -65,79 +65,77 @@ class Environment_6(Env, ABC):
     def __str__(self):
         return f'Name: {self.name}, project path: {self.project_path}, MM: {self.MM}, fans: {self.fans}, start pos: {self.start_coords} == {self.y, self.x}, '
 
-    def step(self, action: int, track: bool = False, t: int = None, trajectory: list = None) -> tuple[
-        ndarray, float, bool]:
+    def step(self, action: int) -> tuple[ndarray, float, bool]:
 
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
 
         energy = 1.0
-
         old_pos = self.y, self.x
-
         dy, dx = self.action_mapping[action]
+
+        trajectory = []
 
         if action in [0, 2]:
             if self.can_go(self.y, self.x + dx):
                 self.x += dx
-                if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
                     if self.can_go(self.y, self.x + dx):
                         self.x += dx
-                        if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                        trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
                         if not self.on_solid_grounds():
                             self.y += 1
-                            if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                            trajectory.append((self.y, self.x, self.MM, self.fans, energy))
             else:
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
                     if not self.on_solid_grounds():
                         self.y += 1
-                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
         else:
             energy += 4
             if self.on_solid_grounds():
                 if self.can_go(self.y + dy, self.x):
                     self.y += dy
-                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
                     if self.can_go(self.y + dy, self.x):
                         self.y += dy
-                        if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                        trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
             elif random() < 1 / 3 and self.can_go(self.y + dy, self.x):
                 energy -= 2
                 self.y += dy
-                if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
             else:
                 self.y += 1
-                if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
         self.energy -= energy
         self.energy_cons += energy
 
         # Move enemies
         self.update_enemies(old_pos)
-        if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
+        trajectory.append((self.y, self.x, self.MM, self.fans, energy))
 
         reward, done = self.reward_function(old_pos)
 
         self.scan_surroundings()
 
-        return self.surroundings, reward, done, {'energy': energy, 'energy_cons': self.energy_cons, 'peak': self.peak}
-
+        return self.surroundings, reward, done, {'energy': energy, 'energy_cons': self.energy_cons, 'peak': self.peak, 'trajectory': trajectory}
 
     def reward_function(self, prev_pos):
         reward, done = 0.0, False

@@ -1,11 +1,14 @@
-from utils import ENVIRONMENTS
-
 from matplotlib.pyplot import title, savefig, figure, close
+from gym.wrappers import FrameStack
 from numpy import zeros, mean, std
+from utils import ENVIRONMENTS
+from train_agent import Agent
 from imageio.v2 import imread
 from imageio import mimsave
 from seaborn import heatmap
 from tqdm import tqdm
+from numpy import array
+import torch
 import os
 
 
@@ -13,23 +16,49 @@ def welcome_prompt():
     print('Welcome to Hubert\'s Consciousness')
     path = input("Path to the folder ../resources/")
     n_episodes = int(input("Number of episodes: "))
-    return path, n_episodes
+    mr_agent = int(input("But last but not least which agent do you want: "
+                         "\n [0] Hubert"
+                         "\n [1] Audun"
+                         "\n [2] Morten"
+                         "\nI choose agent (index): "))
+    try:
+        cuda_nr = int(input("If you have multiple cudas, which one do you want us to access (0 is default):"))
+    except ValueError:
+        cuda_nr = 0
+    x = 2
+    if mr_agent == 1:
+        x == 10
+    elif mr_agent == 2:
+        x == 20
+
+    return path, n_episodes, x, cuda_nr
 
 
-def create_gif(self, agent: list[list, list], color_bar: bool = False):
-    colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
+def create_gif(env, agent: list[list, list], color_bar: bool = False):
+    colors = ['#FFA500', '#FFFFFF', '#000000', '#2a7fff']
 
-    def draw_frame(time_step, t, y, x, e, fans):
-        template = self.grid.copy()
-        template[y, x] = 5
+    max_dimension = max(env.grid.shape[0], env.grid.shape[1])
+    scale_factor = 10 / max_dimension
+    width = env.grid.shape[1] * scale_factor
+    height = env.grid.shape[0] * scale_factor
 
-        for s, x_s in fans.items():
-            for j in x_s:
-                template[s, j] = 4
+    def draw_frame(time_step, t, y, x, e, MM_pos, fan_pos):
+        template = env.grid.copy()
+        template[y, x] = 0
 
-        figure(figsize=(10, 10))
+        if fan_pos is not None:
+            for fan in fan_pos:
+                pos = tuple(fan)
+                template[pos] = 4
+
+        if MM_pos is not None:
+            for M in MM_pos:
+                pos = tuple(M)
+                template[pos] = 5
+
+        figure(figsize=(width, height))
         fig = heatmap(template, cmap=colors, cbar=color_bar)
-        title(f'{self.name} \nTime: {t + 1} - energy: {e}', size=30)
+        title(f'{env.name} \nTime: {t + 1} - energy: {e}', size=30)
 
         for _, spine in fig.spines.items():
             spine.set_visible(True)
@@ -38,18 +67,24 @@ def create_gif(self, agent: list[list, list], color_bar: bool = False):
         savefig(f'gif/img_{time_step}.png')
         close()
 
-    y_values, x_values, e_values, fans, t_values = zip(*agent)
+    y_values, x_values, MM, fans, energy, times = zip(*agent)
+
+    if fans[0] is not None:
+        colors.append('#79e2f7')
+
+    if MM[0] is not None:
+        colors.append('#7630e6')
 
     for t in tqdm(range(len(x_values)), desc='Creating plots'):
-        draw_frame(t, t_values[t], y_values[t], x_values[t], e_values[t], fans[t])
+        draw_frame(t, times[t], y_values[t], x_values[t], energy[t], MM[t], fans[t])
 
     frames = []
 
-    for t in tqdm(range(len(x_values)), desc='Creating GIP'):
+    for t in tqdm(range(len(x_values)), desc='Creating GIF'):
         image = imread(f'gif/img_{t}.png')
         frames.append(image)
 
-    mimsave(uri=f'Levels/gifs/{self.name}.gif',
+    mimsave(uri=f'Levels/gifs/{env.name}.gif',
             ims=frames,
             fps=10
             )
@@ -72,60 +107,75 @@ def create_gif(self, agent: list[list, list], color_bar: bool = False):
             print(f"Failed to delete {file_path}. Reason: {e}")
     print('[GIF CREATED]')
 
-from random import randint
-def agent(x): return randint(0, 2)
 
 if __name__ == '__main__':
-    path, n_episodes = welcome_prompt()
+    path, n_episodes, n_stacks, cuda_nr = welcome_prompt()
+
+    # Load agent
+    device = torch.device(f"cuda:{cuda_nr}" if torch.cuda.is_available() else "cpu")
+    print(f'Loading model on: {device} ...', end=' ')
+    agent = torch.load(
+        f'C:\\Users\\Fredrik\\Documents\\GitHub\\Hubert-Final-Project\\project\\src\\models\\base_plus\\agent_{n_stacks}.pt').to(
+        device)
+    agent.training = False
+    print('done.')
+
     run = {}
 
-    environments = ENVIRONMENTS(folder_path=f'resources/{path}/').list_of_envs
+    envs = ENVIRONMENTS(folder_path=f'resources/{path}/').list_of_envs
+    environments = [FrameStack(env=env, num_stack=n_stacks) for env in envs]
 
     for environment in environments:
         env = environment
         run[f'{env.name}'] = {}
 
-        print(f'Environment: {env.name:<18} Shape: {env.grid.shape} MM: {env.MM is not None:>2} Fans: {env.fans is not None:>2}', end=' ')
 
         best_trajectory = []
         best_reward = 0
         best_time = 0
         peaks = zeros(shape=n_episodes)
 
-        for episode in range(n_episodes):
+        for episode in tqdm(range(n_episodes), desc='Episodes'):
             energy = 0
             state = env.reset()
 
             trajectory = []
-            total_reward = 0
+            time = 0
 
-            i = 0
-            while energy >= 0:
-                action = agent(state)
-                next_state, reward, done, info = env.step(action=action, track=True, t=i, trajectory=trajectory)
-                energy = info['energy']  # TODO: Change to energy and not energy consumption
-                state = next_state
-                total_reward += reward
+            while True:
+                # Convert the state to a PyTorch tensor
+                state_array = array(state)
+                state_tensor = torch.from_numpy(state_array).float()
+                state_tensor = state_tensor.to(device)
+
+                # Pass the state through the agent to obtain the action
+                action, _, _, _ = agent.get_action_and_value(state_tensor, testing=True)
+                action = action.item()  # Convert the action tensor to a scalar value
+
+                # Take the action in the environment
+                next_state, reward, done, info = env.step(action=action)
+
+                path = info['trajectory']
+                trajectory.extend([(*item, time) for item in path])
 
                 if done:
                     break
 
+                # Update the current state
+                time += 1
+                state = next_state
+
             peaks[episode] = info['peak']
 
-            if not best_trajectory:
+            if not best_trajectory or time < best_time:
                 best_trajectory = trajectory
-                best_reward = total_reward
-                best_time = i
-            elif total_reward > best_reward:
-                best_trajectory = trajectory
-                best_reward = total_reward
-                best_time = i
+                best_time = time
 
-        print(f'Peak (avg): {mean(peaks[episode]):>2}')
-        print(f'std): {std(peaks[episode]):>2}')
+        print(f'Environment: {env.name:<18} Shape: {env.grid.shape} MM: {len(env.MM) if env.MM else 0:>1} Fans: {len(env.fans)  if env.MM else 0:>1}', end=' ')
+        print(f'Peak (avg): {round(mean(peaks[episode]), 4)}', end=' ')
+        print(f'std): {std(peaks[episode])}')
 
         run[f'{env.name}']['trajectory'] = best_trajectory
-        run[f'{env.name}']['reward'] = best_reward
         run[f'{env.name}']['time'] = best_time
 
     print('Done!')
@@ -135,10 +185,14 @@ if __name__ == '__main__':
         print(f'{i:>2}: {environment.name}')
 
     answer = input('Y (yes) / N (no): ')
+
     print('Write the index (or indexes) of the environments you would like. (separate by space)')
+
     indexes = input('Index(es): ').split(' ')
     indexes = [int(i) for i in indexes]
+
     print('Starting to create GIF\'s This can take some time, take a coffee, or take down a shell-company like Fredriksens')
+
     for index in indexes:
-        env = environments[index]
-        create_gif(agent=run[f'{env.name}']['trajectory'])
+        print(run[f'{env.name}']['trajectory'])
+        create_gif(env, agent=run[f'{env.name}']['trajectory'])

@@ -109,7 +109,7 @@ class Agent(nn.Module):
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.Flatten(),
+            nn.Flatten(start_dim=1),
             nn.Linear(in_features=1_600, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=1)
@@ -120,7 +120,7 @@ class Agent(nn.Module):
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.Flatten(),
+            nn.Flatten(start_dim=1),
             nn.Linear(in_features=1_600, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=envs.single_action_space.n)
@@ -131,15 +131,16 @@ class Agent(nn.Module):
         # x = x.flatten(1)
         return self.critic(x)
 
-    def get_action_and_value(self, x, action=None):
+    def get_action_and_value(self, x, action=None, testing: bool = False):
         # Only for one obs
-        # x = x.unsqueeze(1)
+        x = x.unsqueeze(0) if testing else x
         logits = self.actor(x)
         probs = Categorical(logits=logits)
 
         if action is None:
-            # action = probs.mode
-            action = probs.sample()
+            action = probs.mode if testing else probs.sample()
+            # action = probs.mode  # Testing
+            # action = probs.sample()  # Training
 
         return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 

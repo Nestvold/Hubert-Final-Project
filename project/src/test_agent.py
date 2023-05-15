@@ -1,7 +1,7 @@
 from utils import ENVIRONMENTS
 
 from matplotlib.pyplot import title, savefig, figure, close
-from numpy import zeros, mean
+from numpy import zeros, mean, std
 from imageio.v2 import imread
 from imageio import mimsave
 from seaborn import heatmap
@@ -122,6 +122,7 @@ if __name__ == '__main__':
                 best_time = i
 
         print(f'Peak (avg): {mean(peaks[episode]):>2}')
+        print(f'std): {std(peaks[episode]):>2}')
 
         run[f'{env.name}']['trajectory'] = best_trajectory
         run[f'{env.name}']['reward'] = best_reward

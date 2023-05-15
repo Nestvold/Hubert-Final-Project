@@ -1,9 +1,17 @@
 # Utils module
 from .extra import GridValues
 
+# Reward functions
+# from .extra import reward_func_base as reward_function
+# from .extra import reward_func_height_focus as reward_function
+from .extra import reward_func_height_and_exploration as reward_function
+# from .extra import reward_func_no_negative as reward_function
+# from .extra import reward_to_good_to_be_true as reward_function
+
+
 # Other modules
 from matplotlib.pyplot import title, savefig, figure, close
-from numpy import array, ndarray, zeros, float32
+from numpy import ndarray, zeros, float32
 from random import random, choice, randint
 from gym.spaces import Discrete, Box
 from imageio.v2 import imread
@@ -63,11 +71,9 @@ class Environment_6(Env, ABC):
         if action not in self.action_mapping:
             raise ValueError(f'Invalid action: {action}.')
 
-        reward = 0
-        done = False
         energy = 1.0
 
-        old_y, old_x = self.y, self.x
+        old_pos = self.y, self.x
 
         dy, dx = self.action_mapping[action]
 
@@ -123,64 +129,61 @@ class Environment_6(Env, ABC):
         self.energy_cons += energy
 
         # Move enemies
-        self.update_enemies((old_y, old_x))
+        self.update_enemies(old_pos)
         if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
 
-        # Check if he is encountered by an MM
-        if self.busted():
-            self.y, self.x = self.start_coords
-            self.scan_surroundings()
-            if track: trajectory.append((self.y, self.x, self.MM, self.fans, energy, t))
-            return self.surroundings, reward, done, {'energy': self.energy_cons, 'peak': self.peak}
-
-        reward, done = self.calculate_reward(old_y, old_x, reward, done)
+        reward, done = self.reward_function(old_pos)
 
         self.scan_surroundings()
 
-        return self.surroundings, reward, done, {'energy': self.energy_cons, 'peak': self.peak}
+        return self.surroundings, reward, done, {'energy': energy, 'energy_cons': self.energy_cons, 'peak': self.peak}
 
-    def calculate_reward(self, prev_y, prev_x, reward, done):
+
+    def reward_function(self, prev_pos):
+        reward, done = 0, False
+
+        # If encountering MM
+        if self.busted():
+            return -1.0, True
+
+        # If reached the ceiling
+        if self.in_end_state():
+            return 1.0, True
+
+        # Penalize getting seen by fans
+        self.energy -= self.seen()
+
+        if self.energy < 0:
+            return -1.0, True
 
         # Encourage height
         if self.y < self.best_y:
             change = self.best_y - self.y
             self.energy += change * 15
             self.best_y = self.y
-            self.peak = self.best_y / (self.grid.shape[0] - 3)
-            reward += (self.grid.shape[0] - 3) - self.best_y # 2 + (2 - self.peak)
+            self.peak = self.best_y / (self.grid.shape[0] - 2) if self.best_y > 1 else 0
+            reward += 1
 
         # Encourage exploration
         if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
             self.prev_states.add(surroundings)
-            reward += 0.5
+            reward += 0.1
 
-        if self.x == prev_x and self.y >= prev_y:
-            reward -= 0.5
+        if self.x == prev_pos[1] and self.y >= prev_pos[0]:
+            reward -= 0.1
 
-        # Encourage getting to goal
-        if self.in_end_state():
-            done = True
-            reward += 5.0
-
-        # Max capacity
-        if self.energy < 0:
-            done = True
-            reward -= 2
-
-        # Penalize getting seen by fans
-        reward += self.seen()
         return reward, done
 
     def busted(self):
         return [self.y, self.x] in self.MM and random() < self.pMM
 
     def seen(self):
-        reward = 0
+        cost = 0
         for fan in self.fans:
             if [self.y, self.x] == fan:
-                reward -= randint(20, 100)
-        self.energy_cons += abs(reward)
-        return reward
+                cost = randint(20, 100)
+        self.energy_cons += cost
+        return cost
 
     def can_move_enemy(self, entity, move):
         return self.grid[entity[0], entity[1] + move] != 2 and self.grid[entity[0] - 1, entity[1] + move] != 1
@@ -194,7 +197,11 @@ class Environment_6(Env, ABC):
 
         # Update fans based on fan vision
         for fan in self.fans:
-            move = 1 if fan[0] == pre_pos[0] and fan[1] < pre_pos[1] else choice([-1, 1])
+            if fan[0] == pre_pos[0]:
+                move = 1 if fan[1] < pre_pos[1] else -1
+            else:
+                move = choice([-1, 1])
+
             if self.can_move_enemy(fan, move):
                 fan[1] += move
 
@@ -230,7 +237,7 @@ class Environment_6(Env, ABC):
         self.scan_surroundings()
         self.prev_states = set([hash(str(list(self.surroundings)))])
         self.best_y = self.y
-        self.peak = self.best_y / (self.grid.shape[0] - 3)
+        self.peak = self.best_y / (self.grid.shape[0] - 2)
         self.energy_cons = 0
         self.energy = 150
 

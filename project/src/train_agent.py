@@ -23,58 +23,58 @@ def parse_args():
     # fmt: off
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
-        help="the name of this experiment")
+                        help="the name of this experiment")
     parser.add_argument("--seed", type=int, default=1,
-        help="seed of the experiment")
+                        help="seed of the experiment")
     parser.add_argument("--torch-deterministic", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
-        help="if toggled, `torch.backends.cudnn.deterministic=False`")
+                        help="if toggled, `torch.backends.cudnn.deterministic=False`")
     parser.add_argument("--cuda", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
-        help="if toggled, cuda will be enabled by default")
+                        help="if toggled, cuda will be enabled by default")
     parser.add_argument("--track", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
-        help="if toggled, this experiment will be tracked with Weights and Biases")
+                        help="if toggled, this experiment will be tracked with Weights and Biases")
     parser.add_argument("--wandb-project-name", type=str, default="cleanRL",
-        help="the wandb's project name")
+                        help="the wandb's project name")
     parser.add_argument("--wandb-entity", type=str, default=None,
-        help="the entity (team) of wandb's project")
+                        help="the entity (team) of wandb's project")
     parser.add_argument("--capture-video", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
-        help="whether to capture videos of the agent performances (check out `videos` folder)")
+                        help="whether to capture videos of the agent performances (check out `videos` folder)")
 
     # Algorithm specific arguments
     parser.add_argument("--env-id", type=str, default="Hubert",
-        help="the id of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=100_000_000,
-        help="total timesteps of the experiments")
+                        help="the id of the environment")
+    parser.add_argument("--total-timesteps", type=int, default=10_000_000,
+                        help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=2.5e-4,
-        help="the learning rate of the optimizer")
-    parser.add_argument("--num-envs", type=int, default=18,
-        help="the number of parallel game environments")
+                        help="the learning rate of the optimizer")
+    parser.add_argument("--num-envs", type=int, default=21,
+                        help="the number of parallel game environments")
     parser.add_argument("--num-steps", type=int, default=128,
-        help="the number of steps to run in each environment per policy rollout")
+                        help="the number of steps to run in each environment per policy rollout")
     parser.add_argument("--anneal-lr", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
-        help="Toggle learning rate annealing for policy and value networks")
+                        help="Toggle learning rate annealing for policy and value networks")
     parser.add_argument("--gamma", type=float, default=0.99,
-        help="the discount factor gamma")
+                        help="the discount factor gamma")
     parser.add_argument("--gae-lambda", type=float, default=0.95,
-        help="the lambda for the general advantage estimation")
+                        help="the lambda for the general advantage estimation")
     parser.add_argument("--num-minibatches", type=int, default=4,
-        help="the number of mini-batches")
+                        help="the number of mini-batches")
     parser.add_argument("--update-epochs", type=int, default=4,
-        help="the K epochs to update the policy")
+                        help="the K epochs to update the policy")
     parser.add_argument("--norm-adv", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
-        help="Toggles advantages normalization")
+                        help="Toggles advantages normalization")
     parser.add_argument("--clip-coef", type=float, default=0.2,
-        help="the surrogate clipping coefficient")
+                        help="the surrogate clipping coefficient")
     parser.add_argument("--clip-vloss", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
-        help="Toggles whether or not to use a clipped loss for the value function, as per the paper.")
+                        help="Toggles whether or not to use a clipped loss for the value function, as per the paper.")
     parser.add_argument("--ent-coef", type=float, default=0.01,
-        help="coefficient of the entropy")
+                        help="coefficient of the entropy")
     parser.add_argument("--vf-coef", type=float, default=0.5,
-        help="coefficient of the value function")
+                        help="coefficient of the value function")
     parser.add_argument("--max-grad-norm", type=float, default=0.5,
-        help="the maximum norm for the gradient clipping")
+                        help="the maximum norm for the gradient clipping")
     parser.add_argument("--target-kl", type=float, default=None,
-        help="the target KL divergence threshold")
-    parser.add_argument("--n-stacks", type=int, default=5,
+                        help="the target KL divergence threshold")
+    parser.add_argument("--n-stacks", type=int, default=10,
                         help="Number of observations")
     args = parser.parse_args()
     args.batch_size = int(args.num_envs * args.num_steps)
@@ -105,27 +105,30 @@ class Agent(nn.Module):
         super().__init__()
 
         self.critic = nn.Sequential(
-            layer_init(nn.Linear(in_features=81 * args.n_stacks, out_features=256)),
-            nn.Tanh(),
-            layer_init(nn.Linear(in_features=256, out_features=256)),
-            nn.Tanh(),
-            layer_init(nn.Linear(in_features=256, out_features=1), std=1.0),
-        )
-
-        self.actor = nn.Sequential(
-            nn.Conv2d(in_channels=1 * args.n_stacks, out_channels=32, kernel_size=3, stride=1),
+            nn.Conv2d(in_channels=args.n_stacks, out_channels=32, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1),
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(in_features=1_600, out_features=512),
             nn.ReLU(),
-            nn.Linear(in_features=512, out_features=envs.single_action_space.n),
-            nn.Softmax(dim=1)
+            nn.Linear(in_features=512, out_features=1)
+        )
+
+        self.actor = nn.Sequential(
+            nn.Conv2d(in_channels=args.n_stacks, out_channels=32, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(in_features=1_600, out_features=512),
+            nn.ReLU(),
+            nn.Linear(in_features=512, out_features=envs.single_action_space.n)
         )
 
     def get_value(self, x):
-        x = x.flatten(1)
+        # Old network
+        # x = x.flatten(1)
         return self.critic(x)
 
     def get_action_and_value(self, x, action=None):
@@ -135,9 +138,10 @@ class Agent(nn.Module):
         probs = Categorical(logits=logits)
 
         if action is None:
+            # action = probs.mode
             action = probs.sample()
 
-        return action, probs.log_prob(action), probs.entropy(), self.critic(x.flatten(1))
+        return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
 
 if __name__ == "__main__":
@@ -156,7 +160,7 @@ if __name__ == "__main__":
                 monitor_gym=True,
                 save_code=True,
             )
-        writer = SummaryWriter(f"runs/{run_name}")
+        writer = SummaryWriter(f"runs/{run_name}_{args.n_stacks}")
         writer.add_text(
             "hyperparameters",
             "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -174,7 +178,7 @@ if __name__ == "__main__":
         environments = ENVIRONMENTS(folder_path='resources/training_maps/').list_of_envs
 
         envs = gym.vector.AsyncVectorEnv(
-            [make_env(env, args.seed + i,) for i, env in enumerate(environments)]
+            [make_env(env, args.seed + i, ) for i, env in enumerate(environments)]
         )
 
         assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
@@ -232,8 +236,7 @@ if __name__ == "__main__":
 
                     if next_done[i]:
                         writer.add_scalar("charts/episodic_peak", item["peak"], global_step)
-                        writer.add_scalar("charts/energy_consumption", item["energy"], global_step)
-
+                        writer.add_scalar("charts/energy_consumption", item["energy_cons"], global_step)
 
             # bootstrap value if not done
             with torch.no_grad():
@@ -268,7 +271,8 @@ if __name__ == "__main__":
                     end = start + args.minibatch_size
                     mb_inds = b_inds[start:end]
 
-                    _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds], b_actions.long()[mb_inds])
+                    _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds],
+                                                                                  b_actions.long()[mb_inds])
                     logratio = newlogprob - b_logprobs[mb_inds]
                     ratio = logratio.exp()
 
@@ -335,14 +339,14 @@ if __name__ == "__main__":
 
     print("Saving models...")
     now = datetime.now()
-    formatted_time = now.strftime('%m-%d-%H-%M')
+    formatted_time = now.strftime('%m-%d-%H')
 
     if not os.path.exists(f'src/models/{formatted_time}'):
         os.makedirs(f'src/models/{formatted_time}')
 
-    torch.save(agent, f'src/models/{formatted_time}/agent.pt')
+    torch.save(agent, f'src/models/{formatted_time}/agent_{args.n_stacks}.pt')
 
-    print("Models saved.")
+    print("Model saved.")
 
     envs.close()
     writer.close()

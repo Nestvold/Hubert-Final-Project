@@ -140,21 +140,21 @@ class Environment_6(Env, ABC):
 
 
     def reward_function(self, prev_pos):
-        reward, done = 0, False
+        reward, done = 0.0, False
 
         # If encountering MM
         if self.busted():
-            return -1.0, True
+            return -5.0, True
 
         # If reached the ceiling
         if self.in_end_state():
-            return 1.0, True
+            return 10.0, True
 
         # Penalize getting seen by fans
         self.energy -= self.seen()
 
         if self.energy < 0:
-            return -1.0, True
+            return -5.0, True
 
         # Encourage height
         if self.y < self.best_y:
@@ -162,14 +162,18 @@ class Environment_6(Env, ABC):
             self.energy += change * 15
             self.best_y = self.y
             self.peak = self.best_y / (self.grid.shape[0] - 2) if self.best_y > 1 else 0
-            reward += 1
+            reward += 1.0
+        else:
+            reward -= 0.1
 
         # Encourage exploration
         if (surroundings := hash(str(list(self.surroundings.flatten())))) not in self.prev_states:
             self.prev_states.add(surroundings)
             reward += 0.1
+        else:
+            reward -= 0.1
 
-        if self.x == prev_pos[1] and self.y >= prev_pos[0]:
+        if self.x == prev_pos[1] and self.y == prev_pos[0]:
             reward -= 0.1
 
         return reward, done

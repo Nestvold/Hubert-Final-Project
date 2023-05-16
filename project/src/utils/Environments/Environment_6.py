@@ -130,7 +130,6 @@ class Environment_6(Env, ABC):
         # Move enemies
         self.update_enemies(old_pos)
         trajectory.append((self.y, self.x, self.MM, self.fans, energy))
-
         reward, done = self.reward_function(old_pos)
 
         self.scan_surroundings(action)
@@ -188,24 +187,25 @@ class Environment_6(Env, ABC):
         return cost
 
     def can_move_enemy(self, entity, move):
-        return self.grid[entity[0], entity[1] + move] != 2 and self.grid[entity[0] - 1, entity[1] + move] != 1
+        return self.grid[entity[0], entity[1] + move] != 2 and self.grid[entity[0] + 1, entity[1] + move] != 1
 
     def update_enemies(self, pre_pos):
         # Update MM randomly
-        for MM in self.MM:
+        for i in range(len(self.MM)):
             move = choice([-1, 1])
-            if self.can_move_enemy(MM, move):
-                MM[1] += move
+            if self.can_move_enemy(self.MM[i], move):
+                self.MM[i][1] += move
 
         # Update fans based on fan vision
-        for fan in self.fans:
-            if fan[0] == pre_pos[0]:
-                move = 1 if fan[1] < pre_pos[1] else -1
+        for i in range(len(self.fans)):
+            if self.fans[i][0] == pre_pos[0]:
+                move = 1 if self.fans[i][1] < pre_pos[1] else -1
             else:
                 move = choice([-1, 1])
 
-            if self.can_move_enemy(fan, move):
-                fan[1] += move
+            if self.can_move_enemy(self.fans[i], move):
+                self.fans[i][1] += move
+
 
     def scan_surroundings(self, action: int = None) -> None:
         area = zeros(shape=(9, 9))

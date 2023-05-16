@@ -16,7 +16,7 @@ import os
 def welcome_prompt():
     print('Welcome to Hubert\'s Consciousness')
     path = input("Path to the folder ../resources/")
-    n_episodes = int(input("Number of episodes: "))
+    n_episodes = max(int(input("Number of episodes: ")), 1)
     mr_agent = int(input("But last but not least which agent do you want: "
                          "\n [0] Hubert"
                          "\n [1] Audun"
@@ -60,7 +60,6 @@ def create_gif(env, agent: list[list, list], color_bar: bool = False):
         template[y, x] = 0
 
         if fan_pos:
-            print(fan_pos)
             for fan in fan_pos:
                 pos = tuple(fan)
                 template[pos] = 4

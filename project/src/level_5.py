@@ -10,8 +10,8 @@ env = Environment(name="Level 5", n_actions=10, grid=grid, project_path='Levels'
 # env.plot(color_bar=False, save=True)
 # env = FrameStack(env=env, num_stack=3)
 
-sarsa = SARSA(environment=env, epsilon=0.2)
-sarsa.train(num_episodes=1_000)
+sarsa = SARSA(environment=env, epsilon=0.0)
+trajectory = sarsa.train(num_episodes=100_000)
 
 
 trajectory, reward, time = sarsa.get_optimal_trajectory()
@@ -19,4 +19,4 @@ trajectory, reward, time = sarsa.get_optimal_trajectory()
 # print(f'Energy cost: {reward}')
 # print(f'Total time: {time}')
 
-# env.create_gif(agent=trajectory)
+env.create_gif(agent=trajectory)

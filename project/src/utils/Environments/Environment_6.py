@@ -38,7 +38,7 @@ class Environment_6(Env, ABC):
         self.action_space = Discrete(3)  # 0 = go left, 1 = jump, 2 = go right
 
         # y, x, 9 x 9 grid -> 0: nothing, 1: Air, 2: Solid, 3: Semisolid, 4: MM, 5: fan
-        self.observation_space = Box(low=-1, high=5, shape=(9, 9), dtype=float32)
+        self.observation_space = Box(low=-1, high=6, shape=(9, 9), dtype=float32)
 
         # State representation
         self.start_coords = start_coords
@@ -133,7 +133,7 @@ class Environment_6(Env, ABC):
 
         reward, done = self.reward_function(old_pos)
 
-        self.scan_surroundings()
+        self.scan_surroundings(action)
 
         return self.surroundings, reward, done, {'energy': energy, 'energy_cons': self.energy_cons, 'peak': self.peak, 'trajectory': trajectory}
 
@@ -207,7 +207,7 @@ class Environment_6(Env, ABC):
             if self.can_move_enemy(fan, move):
                 fan[1] += move
 
-    def scan_surroundings(self) -> None:
+    def scan_surroundings(self, action: int = None) -> None:
         area = zeros(shape=(9, 9))
 
         for y, y_v in enumerate(range(self.y - 4, self.y + 5)):
@@ -219,7 +219,8 @@ class Environment_6(Env, ABC):
                         area[y, x] = 5
                     else:
                         area[y, x] = self.grid[y_v, x_v]
-
+        action_tune = {0: 0.1, 1: 0.2, 2: 0.3}.get(action, 0.0)
+        area[4, 4] += action_tune
         self.surroundings = area
 
     def can_go(self, y: int, x: int) -> bool:

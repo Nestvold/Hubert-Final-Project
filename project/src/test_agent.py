@@ -9,6 +9,7 @@ from seaborn import heatmap
 from tqdm import tqdm
 from numpy import array
 import torch
+from time import sleep
 import os
 
 
@@ -20,6 +21,7 @@ def welcome_prompt():
                          "\n [0] Hubert"
                          "\n [1] Audun"
                          "\n [2] Morten"
+                         "\n [3] TROELS"
                          "\nI choose agent (index): "))
     try:
         cuda_nr = int(input("If you have multiple cudas, which one do you want us to access (0 is default):"))
@@ -27,38 +29,50 @@ def welcome_prompt():
         cuda_nr = 0
     x = 2
     if mr_agent == 1:
-        x == 10
+        x = 5
     elif mr_agent == 2:
-        x == 20
+        x = 10
+    elif mr_agent == 3:
+        x = 20
 
     return path, n_episodes, x, cuda_nr
 
 
 def create_gif(env, agent: list[list, list], color_bar: bool = False):
     colors = ['#FFA500', '#FFFFFF', '#000000', '#2a7fff']
-
     max_dimension = max(env.grid.shape[0], env.grid.shape[1])
     scale_factor = 10 / max_dimension
     width = env.grid.shape[1] * scale_factor
     height = env.grid.shape[0] * scale_factor
 
+    r = 0
+    i = 0
+
     def draw_frame(time_step, t, y, x, e, MM_pos, fan_pos):
+        nonlocal r
+        nonlocal i
+
+        if t == i:
+            i += 1
+            r += e
+
         template = env.grid.copy()
         template[y, x] = 0
 
-        if fan_pos is not None:
+        if fan_pos:
+            print(fan_pos)
             for fan in fan_pos:
                 pos = tuple(fan)
                 template[pos] = 4
 
-        if MM_pos is not None:
+        if MM_pos:
             for M in MM_pos:
                 pos = tuple(M)
                 template[pos] = 5
 
         figure(figsize=(width, height))
         fig = heatmap(template, cmap=colors, cbar=color_bar)
-        title(f'{env.name} \nTime: {t + 1} - energy: {e}', size=30)
+        title(f'{env.name} \nTime: {t + 1} - energy: {r}', size=30)
 
         for _, spine in fig.spines.items():
             spine.set_visible(True)
@@ -69,10 +83,10 @@ def create_gif(env, agent: list[list, list], color_bar: bool = False):
 
     y_values, x_values, MM, fans, energy, times = zip(*agent)
 
-    if fans[0] is not None:
+    if fans[0]:
         colors.append('#79e2f7')
 
-    if MM[0] is not None:
+    if MM[0]:
         colors.append('#7630e6')
 
     for t in tqdm(range(len(x_values)), desc='Creating plots'):
@@ -84,7 +98,7 @@ def create_gif(env, agent: list[list, list], color_bar: bool = False):
         image = imread(f'gif/img_{t}.png')
         frames.append(image)
 
-    mimsave(uri=f'Levels/gifs/{env.name}.gif',
+    mimsave(uri=f'Levels/gifs/{env.name}_{r}.gif',
             ims=frames,
             fps=10
             )
@@ -138,9 +152,9 @@ if __name__ == '__main__':
         for episode in tqdm(range(n_episodes), desc='Episodes'):
             energy = 0
             state = env.reset()
-
             trajectory = []
             time = 0
+            best_peak = 1000
 
             while True:
                 # Convert the state to a PyTorch tensor
@@ -167,16 +181,16 @@ if __name__ == '__main__':
 
             peaks[episode] = info['peak']
 
-            if not best_trajectory or time < best_time:
+            if not best_trajectory or info['peak'] < best_peak:
                 best_trajectory = trajectory
-                best_time = time
+                best_peak = info['peak']
 
-        print(f'Environment: {env.name:<18} Shape: {env.grid.shape} MM: {len(env.MM) if env.MM else 0:>1} Fans: {len(env.fans)  if env.MM else 0:>1}', end=' ')
-        print(f'Peak (avg): {round(mean(peaks[episode]), 4)}', end=' ')
-        print(f'std): {std(peaks[episode])}')
+        print(f'Environment: {env.name:<22} - Shape: {env.grid.shape} - MM: {len(env.MM) if env.MM else 0:>1} - Fans: {len(env.fans)  if env.MM else 0:>1} - Avg: {round(mean(peaks), 4)} - Std: {std(peaks)}')
 
         run[f'{env.name}']['trajectory'] = best_trajectory
         run[f'{env.name}']['time'] = best_time
+
+        sleep(0.5)
 
     print('Done!')
     print('Would you like to create a gif of the following environments:')
@@ -186,13 +200,19 @@ if __name__ == '__main__':
 
     answer = input('Y (yes) / N (no): ')
 
+    if answer.strip().lower() == 'n':
+        exit()
+
     print('Write the index (or indexes) of the environments you would like. (separate by space)')
 
     indexes = input('Index(es): ').split(' ')
     indexes = [int(i) for i in indexes]
 
-    print('Starting to create GIF\'s This can take some time, take a coffee, or take down a shell-company like Fredriksens')
+    print('Starting to create GIF\'s This can take some time, take a coffee, or take down a shell-shit-company like Fredriksens')
 
     for index in indexes:
-        print(run[f'{env.name}']['trajectory'])
+        env = environments[index]
+        print(f'[CREATING {env.name.upper().replace("DATA", "")}]')
+        sleep(0.1)
         create_gif(env, agent=run[f'{env.name}']['trajectory'])
+        sleep(2)

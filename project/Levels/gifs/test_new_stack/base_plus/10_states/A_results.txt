@@ -1,0 +1,32 @@
+Welcome to Hubert's Consciousness
+Path to the folder ../resources/test_maps
+Number of episodes: 1000
+But last but not least which agent do you want:
+ [0] Hubert
+ [1] Audun
+ [2] Morten
+ [3] TROELS
+I choose agent (index): 2
+If you have multiple cudas, which one do you want us to access (0 is default):0
+Loading model on: cuda:0 ... done.
+Episodes: 100%|██████████| 1000/1000 [02:03<00:00,  8.09it/s]
+Environment: Effortless elevation   - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.7778 - Std: 2.220446049250313e-16
+Episodes: 100%|██████████| 1000/1000 [02:44<00:00,  6.06it/s]
+Environment: Empathic newborn       - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.5604 - Std: 0.26275734263976547
+Episodes: 100%|██████████| 1000/1000 [04:31<00:00,  3.69it/s]
+Environment: Magnificent            - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 1.0 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [04:13<00:00,  3.95it/s]
+Environment: Petite property        - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.5471 - Std: 0.23113392942909386
+Episodes: 100%|██████████| 1000/1000 [02:26<00:00,  6.83it/s]
+Environment: Rope ladder rally      - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.2778 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [02:36<00:00,  6.38it/s]
+Environment: Ridiculously twisted   - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.4091 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [02:35<00:00,  6.41it/s]
+Environment: The bulwark balcony    - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.5834 - Std: 0.03918615118181989
+Episodes: 100%|██████████| 1000/1000 [01:09<00:00, 14.37it/s]
+Environment: The return of the robo-ruler - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.9333 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [02:34<00:00,  6.46it/s]
+Environment: Undetermined           - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.6818 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [02:24<00:00,  6.92it/s]
+Environment: Unstoppable noodles    - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.3104 - Std: 0.2178901070848149
+Done!

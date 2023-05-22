@@ -10,7 +10,7 @@ from .extra import reward_func_height_and_exploration as reward_function
 
 
 # Other modules
-from matplotlib.pyplot import title, savefig, figure, close
+from matplotlib.pyplot import title, savefig, figure, close, show
 from numpy import ndarray, zeros, float32
 from random import random, choice, randint
 from gym.spaces import Discrete, Box
@@ -21,11 +21,12 @@ from typing import Optional
 from tqdm import tqdm
 from abc import ABC
 from gym import Env
+from copy import deepcopy
 import os
 
 
 class Environment_6(Env, ABC):
-    def __init__(self, name: str, grid: ndarray, MM: dict = None, fans: dict = None, pMM: float = 1.0, start_coords: tuple = (46, 1),
+    def __init__(self, name: str, grid: ndarray, MM: list = None, fans: list = None, pMM: float = 1.0, start_coords: tuple = (46, 1),
                  project_path: str = 'project/src/level_6.py'):
         self.name = name
         self.project_path = project_path
@@ -79,57 +80,58 @@ class Environment_6(Env, ABC):
         if action in [0, 2]:
             if self.can_go(self.y, self.x + dx):
                 self.x += dx
-                trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                    trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
                     if self.can_go(self.y, self.x + dx):
                         self.x += dx
-                        trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                        trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
                         if not self.on_solid_grounds():
                             self.y += 1
-                            trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                            trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
             else:
                 if not self.on_solid_grounds():
                     self.y += 1
-                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                    trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
                     if not self.on_solid_grounds():
                         self.y += 1
-                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                    trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
         else:
             energy += 4
             if self.on_solid_grounds():
                 if self.can_go(self.y + dy, self.x):
                     self.y += dy
-                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                    trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
                     if self.can_go(self.y + dy, self.x):
                         self.y += dy
-                        trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                        trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
             elif random() < 1 / 3 and self.can_go(self.y + dy, self.x):
                 energy -= 2
                 self.y += dy
-                trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
             else:
                 self.y += 1
-                trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
                 if not self.on_solid_grounds():
                     self.y += 1
-                    trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+                    trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
 
         self.energy -= energy
         self.energy_cons += energy
 
         # Move enemies
         self.update_enemies(old_pos)
-        trajectory.append((self.y, self.x, self.MM, self.fans, energy))
+
+        trajectory.append((self.y, self.x, deepcopy(self.MM), deepcopy(self.fans), energy))
         reward, done = self.reward_function(old_pos)
 
         self.scan_surroundings(action)
@@ -194,7 +196,7 @@ class Environment_6(Env, ABC):
         for i in range(len(self.MM)):
             move = choice([-1, 1])
             if self.can_move_enemy(self.MM[i], move):
-                self.MM[i][1] += move
+                self.MM[i] = [self.MM[i][0], self.MM[i][1] + move]
 
         # Update fans based on fan vision
         for i in range(len(self.fans)):
@@ -204,8 +206,7 @@ class Environment_6(Env, ABC):
                 move = choice([-1, 1])
 
             if self.can_move_enemy(self.fans[i], move):
-                self.fans[i][1] += move
-
+                self.fans[i] = [self.fans[i][0], self.fans[i][1] + move]
 
     def scan_surroundings(self, action: int = None) -> None:
         area = zeros(shape=(9, 9))
@@ -219,8 +220,10 @@ class Environment_6(Env, ABC):
                         area[y, x] = 5
                     else:
                         area[y, x] = self.grid[y_v, x_v]
+
         action_tune = {0: 0.1, 1: 0.2, 2: 0.3}.get(action, 0.0)
         area[4, 4] += action_tune
+
         self.surroundings = area
 
     def can_go(self, y: int, x: int) -> bool:
@@ -246,58 +249,29 @@ class Environment_6(Env, ABC):
 
         return self.surroundings
 
-    def create_gif(self, agent: list[list, list], color_bar: bool = False):
-        colors = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
+    def plot(self, agent: dict = None, color_bar: bool = True, save: bool = False):
+        """
+        Plot a heatmap of the environment with optional agent routes.
+        :param agent: A dictionary containing the agent names as keys and their corresponding routes as values.
+        :param color_bar: A boolean indicating whether to display a color bar for the heatmap.
+        :param save: A boolean indicating whether to save the plots to a file.
+        :returns: None
+        """
+        if agent is not None:  # 2a7fff
+            #              Green      White      Black      Blue       Pink       Orange
+            color_map = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979', '#FFA500']
+        else:
+            color_map = ['#00d400', '#FFFFFF', '#000000', '#2a7fff', '#f77979']
 
-        def draw_frame(time_step, t, y, x, e, fans):
-            template = self.grid.copy()
-            template[y, x] = 5
+        figure(figsize=(10, 10))
+        map = heatmap(data=self.grid, cmap=color_map, cbar=color_bar)
 
-            for s, x_s in fans.items():
-                for j in x_s:
-                    template[s, j] = 4
+        for _, spine in map.spines.items():
+            spine.set_visible(True)
+            spine.set_linewidth(1)
 
-            figure(figsize=(10, 10))
-            fig = heatmap(template, cmap=colors, cbar=color_bar)
-            title(f'{self.name} \nTime: {t + 1} - energy: {e}', size=30)
+        title(self.name.capitalize(), size=30)
 
-            for _, spine in fig.spines.items():
-                spine.set_visible(True)
-                spine.set_linewidth(1)
-
-            savefig(f'gif/img_{time_step}.png')
-            close()
-
-        y_values, x_values, e_values, fans, t_values = zip(*agent)
-
-        for t in tqdm(range(len(x_values)), desc='Creating plots'):
-            draw_frame(t, t_values[t], y_values[t], x_values[t], e_values[t], fans[t])
-
-        frames = []
-
-        for t in tqdm(range(len(x_values)), desc='Creating GIP'):
-            image = imread(f'gif/img_{t}.png')
-            frames.append(image)
-
-        mimsave(uri=f'Levels/gifs/{self.name}.gif',
-                ims=frames,
-                fps=10
-                )
-
-        # Delete plots
-        folder_path = "gif"
-
-        # Get all the file names in the folder
-        files = os.listdir(folder_path)
-
-        # Loop through the files and delete them
-        for file_name in tqdm(files, desc='Deleting files'):
-            file_path = os.path.join(folder_path, file_name)
-            try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                elif os.path.isdir(file_path):
-                    os.rmdir(file_path)
-            except Exception as e:
-                print(f"Failed to delete {file_path}. Reason: {e}")
-        print('[GIF CREATED]')
+        if save:
+            savefig(f'{self.project_path}/images/{self.name}.png')
+        show()

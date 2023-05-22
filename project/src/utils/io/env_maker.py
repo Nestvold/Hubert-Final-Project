@@ -6,6 +6,7 @@ from numpy import ndarray, zeros, array
 from os import listdir, path
 import re
 
+
 class ENVIRONMENTS:
     def __init__(self, folder_path: str) -> None:
         self.folder_path = folder_path

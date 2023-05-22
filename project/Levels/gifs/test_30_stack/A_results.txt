@@ -1,0 +1,32 @@
+Welcome to Hubert's Consciousness
+Path to the folder ../resources/test_maps
+Number of episodes: 1000
+But last but not least which agent do you want:
+ [0] Hubert
+ [1] Audun
+ [2] Morten
+ [3] TROELS
+I choose agent (index): 3
+If you have multiple cudas, which one do you want us to access (0 is default):0
+Loading model on: cuda:0 ... done.
+Episodes: 100%|██████████| 1000/1000 [01:27<00:00, 11.38it/s]
+Environment: Effortless elevation   - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.1667 - Std: 2.7755575615628914e-17
+Episodes: 100%|██████████| 1000/1000 [03:59<00:00,  4.18it/s]
+Environment: Empathic newborn       - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.9 - Std: 2.220446049250313e-16
+Episodes: 100%|██████████| 1000/1000 [02:27<00:00,  6.77it/s]
+Environment: Magnificent            - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.9667 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [10:22<00:00,  1.61it/s]
+Environment: Petite property        - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.8 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [03:09<00:00,  5.29it/s]
+Environment: Rope ladder rally      - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.1111 - Std: 4.163336342344337e-17
+Episodes: 100%|██████████| 1000/1000 [04:30<00:00,  3.70it/s]
+Environment: Ridiculously twisted   - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.5 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [05:05<00:00,  3.28it/s]
+Environment: The bulwark balcony    - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.6082 - Std: 0.026811585389736114
+Episodes: 100%|██████████| 1000/1000 [07:52<00:00,  2.12it/s]
+Environment: The return of the robo-ruler - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.3331 - Std: 0.11094017907563217
+Episodes: 100%|██████████| 1000/1000 [03:43<00:00,  4.47it/s]
+Environment: Undetermined           - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.8636 - Std: 2.220446049250313e-16
+Episodes: 100%|██████████| 1000/1000 [03:52<00:00,  4.31it/s]
+Environment: Unstoppable noodles    - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.4218 - Std: 0.19512065751133145
+Done!

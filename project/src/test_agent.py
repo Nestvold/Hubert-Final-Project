@@ -128,7 +128,7 @@ if __name__ == '__main__':
     device = torch.device(f"cuda:{cuda_nr}" if torch.cuda.is_available() else "cpu")
     print(f'Loading model on: {device} ...', end=' ')
     agent = torch.load(
-        f'C:\\Users\\Fredrik\\Documents\\GitHub\\Hubert-Final-Project\\project\\src\\models\\base_plus\\agent_{n_stacks}.pt', map_location=device) 
+        f'C:\\Users\\Fredrik\\Documents\\GitHub\\Hubert-Final-Project\\project\\src\\models\\test_if_bug\\base_plus\\agent_{n_stacks}.pt', map_location=device)
     agent.training = False
     print('done.')
 

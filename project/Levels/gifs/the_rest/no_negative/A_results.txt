@@ -1,0 +1,32 @@
+Welcome to Hubert's Consciousness
+Path to the folder ../resources/test_maps
+Number of episodes: 1000
+But last but not least which agent do you want:
+ [0] Hubert
+ [1] Audun
+ [2] Morten
+ [3] TROELS
+I choose agent (index): 2
+If you have multiple cudas, which one do you want us to access (0 is default):0
+Loading model on: cuda:0 ... done.
+Episodes: 100%|██████████| 1000/1000 [01:37<00:00, 10.21it/s]
+Environment: Effortless elevation   - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.7778 - Std: 2.220446049250313e-16
+Episodes: 100%|██████████| 1000/1000 [03:58<00:00,  4.19it/s]
+Environment: Empathic newborn       - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.5028 - Std: 0.20558032763645237
+Episodes: 100%|██████████| 1000/1000 [00:51<00:00, 19.50it/s]
+Environment: Magnificent            - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 1.0 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [06:59<00:00,  2.38it/s]
+Environment: Petite property        - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.8 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [02:44<00:00,  6.08it/s]
+Environment: Rope ladder rally      - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.5556 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [05:12<00:00,  3.20it/s]
+Environment: Ridiculously twisted   - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.511 - Std: 0.025528949698866824
+Episodes: 100%|██████████| 1000/1000 [04:36<00:00,  3.61it/s]
+Environment: The bulwark balcony    - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.5525 - Std: 0.23221284297911787
+Episodes: 100%|██████████| 1000/1000 [01:39<00:00, 10.08it/s]
+Environment: The return of the robo-ruler - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.8 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [04:27<00:00,  3.73it/s]
+Environment: Undetermined           - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.9091 - Std: 3.3306690738754696e-16
+Episodes: 100%|██████████| 1000/1000 [04:57<00:00,  3.36it/s]
+Environment: Unstoppable noodles    - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.3768 - Std: 0.15184539733346558
+Done!

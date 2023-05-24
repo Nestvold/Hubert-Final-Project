@@ -1,0 +1,32 @@
+Welcome to Hubert's Consciousness
+Path to the folder ../resources/test_maps
+Number of episodes: 1000
+But last but not least which agent do you want:
+ [0] Hubert
+ [1] Audun
+ [2] Morten
+ [3] TROELS
+I choose agent (index): 0
+If you have multiple cudas, which one do you want us to access (0 is default):0
+Loading model on: cuda:0 ... done.
+Episodes: 100%|██████████| 1000/1000 [01:23<00:00, 11.92it/s]
+Environment: Effortless elevation   - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.778 - Std: 0.0035066075195687796
+Episodes: 100%|██████████| 1000/1000 [03:19<00:00,  5.01it/s]
+Environment: Empathic newborn       - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.4068 - Std: 0.08296173147234145
+Episodes: 100%|██████████| 1000/1000 [01:11<00:00, 14.07it/s]
+Environment: Magnificent            - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 1.0 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [03:05<00:00,  5.39it/s]
+Environment: Petite property        - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.6006 - Std: 0.007722693830523125
+Episodes: 100%|██████████| 1000/1000 [01:31<00:00, 10.93it/s]
+Environment: Rope ladder rally      - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.8889 - Std: 3.3306690738754696e-16
+Episodes: 100%|██████████| 1000/1000 [01:56<00:00,  8.58it/s]
+Environment: Ridiculously twisted   - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.9091 - Std: 3.3306690738754696e-16
+Episodes: 100%|██████████| 1000/1000 [03:56<00:00,  4.23it/s]
+Environment: The bulwark balcony    - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.6363 - Std: 0.04727083902600231
+Episodes: 100%|██████████| 1000/1000 [01:27<00:00, 11.44it/s]
+Environment: The return of the robo-ruler - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.9333 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [02:03<00:00,  8.10it/s]
+Environment: Undetermined           - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.8192 - Std: 0.006813786462049801
+Episodes: 100%|██████████| 1000/1000 [01:52<00:00,  8.92it/s]
+Environment: Unstoppable noodles    - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.6678 - Std: 0.013895442898063146
+Done!

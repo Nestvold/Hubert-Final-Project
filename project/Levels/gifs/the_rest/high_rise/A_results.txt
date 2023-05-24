@@ -1,0 +1,32 @@
+Welcome to Hubert's Consciousness
+Path to the folder ../resources/test_maps
+Number of episodes: 1000
+But last but not least which agent do you want:
+ [0] Hubert
+ [1] Audun
+ [2] Morten
+ [3] TROELS
+I choose agent (index): 2
+If you have multiple cudas, which one do you want us to access (0 is default):0
+Loading model on: cuda:0 ... done.
+Episodes: 100%|██████████| 1000/1000 [01:16<00:00, 13.09it/s]
+Environment: Effortless elevation   - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.9444 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [02:11<00:00,  7.58it/s]
+Environment: Empathic newborn       - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.7478 - Std: 0.20415619020739978
+Episodes: 100%|██████████| 1000/1000 [01:07<00:00, 14.84it/s]
+Environment: Magnificent            - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 1.0 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [02:16<00:00,  7.35it/s]
+Environment: Petite property        - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.7687 - Std: 0.02763409729543077
+Episodes: 100%|██████████| 1000/1000 [01:21<00:00, 12.26it/s]
+Environment: Rope ladder rally      - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.8889 - Std: 3.3306690738754696e-16
+Episodes: 100%|██████████| 1000/1000 [01:06<00:00, 14.99it/s]
+Environment: Ridiculously twisted   - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 1.0 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [02:24<00:00,  6.90it/s]
+Environment: The bulwark balcony    - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.7979 - Std: 0.08294681026617802
+Episodes: 100%|██████████| 1000/1000 [02:08<00:00,  7.78it/s]
+Environment: The return of the robo-ruler - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.7333 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [01:45<00:00,  9.44it/s]
+Environment: Undetermined           - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.8085 - Std: 0.05901447854286227
+Episodes: 100%|██████████| 1000/1000 [02:39<00:00,  6.26it/s]
+Environment: Unstoppable noodles    - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.5089 - Std: 0.15152597259338207
+Done!

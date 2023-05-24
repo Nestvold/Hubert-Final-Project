@@ -1,0 +1,33 @@
+
+Welcome to Hubert's Consciousness
+Path to the folder ../resources/test_maps
+Number of episodes: 1000
+But last but not least which agent do you want:
+ [0] Hubert
+ [1] Audun
+ [2] Morten
+ [3] TROELS
+I choose agent (index): 1
+If you have multiple cudas, which one do you want us to access (0 is default):0
+Loading model on: cuda:0 ... done.
+Episodes: 100%|██████████| 1000/1000 [00:46<00:00, 21.28it/s]
+Environment: Effortless elevation   - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.1667 - Std: 2.7755575615628914e-17
+Episodes: 100%|██████████| 1000/1000 [03:59<00:00,  4.17it/s]
+Environment: Empathic newborn       - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.6844 - Std: 0.19480752894416925
+Episodes: 100%|██████████| 1000/1000 [02:44<00:00,  6.07it/s]
+Environment: Magnificent            - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.8667 - Std: 2.220446049250313e-16
+Episodes: 100%|██████████| 1000/1000 [04:36<00:00,  3.62it/s]
+Environment: Petite property        - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.5086 - Std: 0.037222320066206384
+Episodes: 100%|██████████| 1000/1000 [02:53<00:00,  5.76it/s]
+Environment: Rope ladder rally      - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.2778 - Std: 0.0
+Episodes: 100%|██████████| 1000/1000 [03:19<00:00,  5.02it/s]
+Environment: Ridiculously twisted   - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.6067 - Std: 0.1235736471946658
+Episodes: 100%|██████████| 1000/1000 [03:05<00:00,  5.38it/s]
+Environment: The bulwark balcony    - Shape: (32, 32) - MM: 2 - Fans: 0 - Avg: 0.6198 - Std: 0.05107022398401812
+Episodes: 100%|██████████| 1000/1000 [01:06<00:00, 15.04it/s]
+Environment: The return of the robo-ruler - Shape: (32, 32) - MM: 0 - Fans: 0 - Avg: 0.9333 - Std: 1.1102230246251565e-16
+Episodes: 100%|██████████| 1000/1000 [02:02<00:00,  8.16it/s]
+Environment: Undetermined           - Shape: (24, 24) - MM: 0 - Fans: 0 - Avg: 0.6405 - Std: 0.027255145848199235
+Episodes: 100%|██████████| 1000/1000 [02:11<00:00,  7.60it/s]
+Environment: Unstoppable noodles    - Shape: (20, 20) - MM: 0 - Fans: 0 - Avg: 0.436 - Std: 0.11056666610837547
+Done!
